@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mi Lista Anime</title>
+<style>
+:root{--bg:#f6f4fb;--card:#fff;--tx:#1d1a2b;--mu:#6d6885;--ac:#7c4dff;--ac-rgb:124,77,255;--ac-ink:#fff;--dng-ink:#c92a2a;--bd:#e3dff0;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme]){--bg:#14111f;--card:#1f1a30;--tx:#f0edfa;--mu:#9d97b8;--ac:#a98bff;--ac-rgb:169,139,255;--ac-ink:#2b1a66;--bd:#322b4a;color-scheme:dark;--dng-ink:#fff}}
+:root[data-theme="dark"]{--bg:#14111f;--card:#1f1a30;--tx:#f0edfa;--mu:#9d97b8;--ac:#a98bff;--ac-rgb:169,139,255;--ac-ink:#2b1a66;--bd:#322b4a;color-scheme:dark;--dng-ink:#fff}
+:root[data-theme="ocean"]{--bg:#0d1526;--card:#17203a;--tx:#e8eefb;--mu:#93a5c4;--ac:#4cc3ff;--ac-rgb:76,195,255;--ac-ink:#06344f;--bd:#2b3a5c;color-scheme:dark;--dng-ink:#fff}
+:root[data-theme="ember"]{--bg:#1d1310;--card:#2b1c15;--tx:#f7ece7;--mu:#b89d8f;--ac:#ff9a62;--ac-rgb:255,154,98;--ac-ink:#43200a;--bd:#4d3227;color-scheme:dark;--dng-ink:#fff}
+:root[data-theme="forest"]{--bg:#0e1a13;--card:#1a2b20;--tx:#ecf6f0;--mu:#93b8a4;--ac:#54d68f;--ac-rgb:84,214,143;--ac-ink:#0a3d22;--bd:#2c4636;color-scheme:dark;--dng-ink:#fff}
+:root[data-theme="mono"]{--bg:#151515;--card:#232323;--tx:#f2f2f2;--mu:#9b9b9b;--ac:#ededed;--ac-rgb:237,237,237;--ac-ink:#1c1c1c;--bd:#3d3d3d;color-scheme:dark;--dng-ink:#fff}
+:root[data-theme="day"]{--bg:#f7f9fd;--card:#fff;--tx:#16233c;--mu:#66788f;--ac:#1d6ff2;--ac-rgb:29,111,242;--ac-ink:#fff;--bd:#e0e7f1;color-scheme:light}
+:root[data-theme="cream"]{--bg:#fdfaf3;--card:#fffef9;--tx:#352a1c;--mu:#8d7d68;--ac:#d97b08;--ac-rgb:217,123,8;--ac-ink:#fff;--bd:#ece1cc;color-scheme:light}
+:root[data-theme="mint"]{--bg:#f6fbf8;--card:#fff;--tx:#153327;--mu:#6c8a7c;--ac:#0d9668;--ac-rgb:13,150,104;--ac-ink:#fff;--bd:#dbece4;color-scheme:light}
+*{box-sizing:border-box;transition:background-color .2s ease,color .2s ease,border-color .2s ease,transform .15s ease,opacity .2s ease}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+body{padding:0 14px 96px;max-width:760px;margin:0 auto;padding-top:140px;padding-top:calc(140px + env(safe-area-inset-top,0px))}
+.header{position:fixed;top:0;left:0;right:0;z-index:10;background:var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.08);padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top,0px));max-width:760px;margin:0 auto}
+.header-content{max-width:760px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.header-left{flex:1}
+h1{font-size:18px;margin:0 0 2px}
+.sub{color:var(--mu);font-size:11px;margin-bottom:0}
+.search-btn{background:none;border:none;font-size:22px;cursor:pointer;padding:8px;color:var(--mu);transition:color .2s ease,transform .2s ease}
+.search-btn:hover{color:var(--ac);transform:scale(1.1)}
+.search-btn:active{transform:scale(1.05)}
+.search-overlay{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--bg);padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top,0px));box-shadow:0 4px 12px rgba(0,0,0,.15);display:none;max-width:760px;margin:0 auto;transition:opacity .3s ease,transform .3s ease;opacity:0;transform:translateY(-10px)}
+.search-overlay.show{display:block;opacity:1;transform:translateY(0)}
+.search-input-row{display:flex;gap:8px;align-items:center}
+.search-input-row input{flex:1}
+.search-close{background:none;border:none;font-size:20px;cursor:pointer;padding:8px;color:var(--mu);transition:color .2s ease,transform .2s ease}
+.search-close:hover{color:var(--ac);transform:scale(1.1)}
+input,select,textarea,button{font:inherit;color:var(--tx)}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--card);transition:border-color .2s ease,box-shadow .2s ease}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac);box-shadow:0 0 0 3px rgba(var(--ac-rgb),.1)}
+.tabs{display:flex;gap:5px;margin:8px 0}
+.tab,.chip{border:1px solid var(--bd);background:var(--card);border-radius:18px;padding:6px 12px;font-size:12px;white-space:nowrap;cursor:pointer;transition:all .2s ease;user-select:none}
+.tab:hover,.chip:hover{border-color:var(--ac);transform:translateY(-1px)}
+.tab:active,.chip:active{transform:translateY(0)}
+.tab{flex:1;text-align:center}
+.on{background:var(--ac);color:var(--ac-ink);border-color:var(--ac);transform:scale(1.02)}
+.chips{display:flex;gap:5px;overflow-x:auto;padding-bottom:3px;margin-bottom:2px; padding-top: 5px;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;cursor:grab}
+.chips::-webkit-scrollbar{display:none}
+.chips:active{cursor:grabbing}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:20px;transition:opacity .3s ease,transform .3s ease}
+@media(min-width:520px){.grid{grid-template-columns:repeat(3,1fr)}}
+.it{background:var(--card);border:1px solid var(--bd);border-radius:14px;overflow:hidden;cursor:pointer;transition:all .25s ease}
+.it:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(0,0,0,.1);border-color:var(--ac)}
+.it:active{transform:translateY(-2px)}
+.cv{aspect-ratio:2/3;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;color:#fff;font-size:44px;font-weight:700;transition:opacity .3s ease}
+.sortbar{display:flex;justify-content:flex-end;gap:6px;margin:10px 4px 0}
+.sortsel{background:var(--card);border:1px solid var(--bd);border-radius:8px;color:var(--mu);font-size:12px;padding:5px 8px;cursor:pointer}
+.sortsel:focus{outline:none;border-color:var(--ac)}
+.cvimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.meta{padding:8px 10px}
+.t{font-size:13px;font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.c{font-size:11px;color:var(--mu);margin-top:3px}
+.episodes{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.7);color:#fff;font-size:10px;padding:2px 6px;border-radius:8px;font-weight:600}
+.seasons{position:absolute;top:5px;left:5px;background:rgba(0,0,0,.7);color:#fff;font-size:10px;padding:2px 6px;border-radius:8px;font-weight:600}
+.empty{text-align:center;color:var(--mu);padding:40px 10px}
+.fab{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom,0px));width:56px;height:56px;border-radius:50%;border:0;background:var(--ac);color:var(--ac-ink);font-size:28px;box-shadow:0 6px 18px rgba(0,0,0,.3);cursor:pointer;z-index:15;transition:all .3s ease;display:flex;align-items:center;justify-content:center;line-height:1;padding:0}
+.fab:hover{transform:scale(1.1);box-shadow:0 8px 24px rgba(var(--ac-rgb),.4)}
+.fab:active{transform:scale(1.05)}
+.row{display:flex;gap:8px;margin:8px 0}
+.btn{border:1px solid var(--bd);background:var(--card);border-radius:12px;padding:10px 14px;cursor:pointer;transition:all .2s ease;font-weight:500}
+.btn:hover{border-color:var(--ac);transform:translateY(-1px)}
+.btn:active{transform:translateY(0) scale(.98)}
+.pri{background:var(--ac);color:var(--ac-ink);border-color:var(--ac);box-shadow:0 3px 10px rgba(var(--ac-rgb),.25);font-weight:600}
+.pri:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 4px 14px rgba(var(--ac-rgb),.3)}
+.pri:active{transform:translateY(0) scale(.98)}
+.dng{color:var(--dng-ink);background:rgba(229,72,77,.12);border-color:rgba(229,72,77,.35);font-weight:500}
+.dng:hover{background:rgba(229,72,77,.22);border-color:#e5484d;transform:translateY(-1px)}
+.dng:active{transform:translateY(0) scale(.98)}
+.soft{color:var(--tx);background:rgba(148,163,184,.18);border-color:rgba(148,163,184,.45);font-weight:500}
+.soft:hover{background:rgba(148,163,184,.28);border-color:var(--mu);transform:translateY(-1px)}
+.soft:active{transform:translateY(0) scale(.98)}
+.softac{color:var(--ac);background:rgba(var(--ac-rgb),.14);border-color:rgba(var(--ac-rgb),.4);font-weight:600}
+.softac:hover{background:rgba(var(--ac-rgb),.24);border-color:var(--ac);transform:translateY(-1px)}
+.softac:active{transform:translateY(0) scale(.98)}
+.seas-item{cursor:pointer;border-radius:6px;padding:3px 6px;margin:0 -6px;transition:background .15s,opacity .15s}
+.seas-item:hover{background:rgba(124,77,255,.12)}
+.seas-item.sel{background:rgba(var(--ac-rgb),.22);box-shadow:inset 3px 0 0 var(--ac)}
+.seas-item.loading{opacity:.5;pointer-events:none}
+.seas-more{background:none;border:none;color:var(--ac);font-size:12px;font-weight:600;padding:4px 6px;cursor:pointer;margin:2px 0 0 -6px}
+.seas-more:hover{text-decoration:underline}
+.seas-collapsible{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease}
+.seas-collapsible.open{grid-template-rows:1fr}
+.seas-collapsible>div{overflow:hidden;min-height:0}
+#ovForm .row:last-child .btn{padding:12px 16px;border-radius:14px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:200;transition:opacity .3s ease;opacity:0}
+.ov.show{display:flex;opacity:1}
+.sheet{background:var(--bg);width:100%;max-width:760px;max-height:95%;overflow:auto;border-radius:20px 20px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px));transition:transform .3s ease;transform:translateY(100%)}
+#ovForm{align-items:stretch}
+#ovForm .sheet{display:flex;flex-direction:column;align-items:center;justify-content:space-between;max-width:none;max-height:100%;height:100%;border-radius:0;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px))}
+#ovForm .sheet>*{width:100%;max-width:640px;flex-shrink:0}
+#ovForm #fDesc{flex:0 1 auto}
+#ovForm .sheet>.row:last-child{margin-top:6px}
+.ov.show .sheet{transform:translateY(0)}
+.sheet h2{margin:0 0 8px;font-size:18px}
+label{font-size:12px;color:var(--mu);display:block;margin-top:10px}
+.prev{width:90px;aspect-ratio:2/3;border-radius:10px;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;color:#fff;font-size:32px;font-weight:700;flex:none;cursor:zoom-in}
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;z-index:300;cursor:zoom-out;opacity:0;transition:opacity .25s ease;padding:20px}
+.lb.show{opacity:1}
+.lb img{max-width:94vw;max-height:88vh;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+textarea{min-height:140px}
+#fDesc{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;font-size:13px;line-height:1.6;color:var(--tx);resize:none;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;cursor:default}
+#fDesc::-webkit-scrollbar{display:none}
+.msg{font-size:12px;color:var(--mu);margin-top:6px;min-height:16px}
+.autocomplete{position:relative}
+.suggestions{position:absolute;top:100%;left:0;right:0;background:var(--card);border:1px solid var(--bd);border-radius:10px;max-height:200px;overflow-y:auto;z-index:100;display:none;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.suggestion{padding:10px 12px;cursor:pointer;transition:background .2s ease;border-bottom:1px solid var(--bd)}
+.suggestion:last-child{border-bottom:none}
+.suggestion:hover{background:var(--bd)}
+.suggestion .title{font-weight:600;font-size:13px}
+.suggestion .subtitle{font-size:11px;color:var(--mu);margin-top:2px}
+</style>
+<script>try{const t=localStorage.getItem("anime-theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22:%22Mi%20Lista%20Anime%22,%22short_name%22:%22MiAnime%22,%22description%22:%22Tu%20lista%20personal%20de%20anime%22,%22start_url%22:%22./%22,%22scope%22:%22./%22,%22display%22:%22standalone%22,%22orientation%22:%22portrait%22,%22background_color%22:%22#14111f%22,%22theme_color%22:%22#14111f%22,%22icons%22:[%7B%22src%22:%22data:image/png;base64,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%22,%22sizes%22:%22192x192%22,%22type%22:%22image/png%22,%22purpose%22:%22any%22%7D,%7B%22src%22:%22data:image/png;base64,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%22,%22sizes%22:%22512x512%22,%22type%22:%22image/png%22,%22purpose%22:%22any%22%7D,%7B%22src%22:%22data:image/png;base64,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%22,%22sizes%22:%22512x512%22,%22type%22:%22image/png%22,%22purpose%22:%22maskable%22%7D]%7D">
+<meta name="theme-color" content="#14111f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MiAnime">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+</head>
+<body>
+<div class="search-overlay" id="searchOverlay">
+  <div class="search-input-row">
+    <input id="q" type="search" placeholder="Buscar anime…">
+    <button class="search-close" id="searchClose">✕</button>
+  </div>
+</div>
+<div class="header">
+  <div class="header-content">
+    <div class="header-left">
+      <h1>🎌 Mi Lista Anime</h1>
+      <div class="sub" id="count"></div>
+    </div>
+    <button class="search-btn" id="searchToggle" aria-label="Buscar">🔍</button>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div class="chips" id="chips"></div>
+</div>
+<div class="grid" id="grid"></div>
+<div class="row" style="margin-top:20px">
+  <button class="btn" id="bBulk" style="flex:1">📝 Importar lista</button>
+  <button class="btn" id="bExp" style="flex:1">⬇️ Exportar</button>
+</div>
+<div class="sortbar">
+  <select id="themeSel" class="sortsel">
+    <option value="dark">🌙 Oscuro</option>
+    <option value="ocean">🌊 Océano</option>
+    <option value="ember">🔥 Brasa</option>
+    <option value="forest">🌲 Bosque</option>
+    <option value="mono">⚫ Mono</option>
+    <option value="day">🔷 Día</option>
+    <option value="cream">🍂 Crema</option>
+    <option value="mint">🌿 Menta</option>
+  </select>
+  <select id="sortSel" class="sortsel">
+    <option value="az">⇅ Nombre A-Z</option>
+    <option value="za">⇅ Nombre Z-A</option>
+    <option value="new">🆕 Más recientes</option>
+    <option value="old">📅 Más antiguos</option>
+  </select>
+</div>
+<div class="row">
+  <button class="btn" id="bCovers" style="flex:1">🖼️ Buscar portadas para todos</button>
+  <button class="btn dng" id="bCancelBulk" style="display:none">✕</button>
+</div>
+<label style="display:flex;align-items:center;gap:6px;margin:2px 0 0;font-size:12px;color:var(--mu);cursor:pointer">
+  <input type="checkbox" id="chkMissing" style="width:auto"> Solo completar faltantes
+</label>
+<div class="msg" id="aMsg"></div>
+<button class="fab" id="fab" aria-label="Añadir"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+
+<div class="ov" id="ovForm"><div class="sheet">
+  <h2 id="fTitle">Nuevo anime</h2>
+  <div class="row" style="align-items:flex-start">
+    <div class="prev" id="prev"></div>
+    <div style="flex:1">
+      <div class="autocomplete">
+        <input id="fName" placeholder="Nombre del anime" autocomplete="off">
+        <div class="suggestions" id="suggestions"></div>
+      </div>
+      <div class="row">
+        <button class="btn" id="bFind" style="flex:1">🔎 Buscar Datos</button>
+        <button class="btn" id="bUp" style="flex:1">🖼️ Mi foto</button>
+      </div>
+      <input type="file" id="file" accept="image/*" hidden>
+      <div class="msg" id="fMsg" style="margin:6px 0 0"></div>
+    </div>
+  </div>
+  <label>Descripción</label><textarea id="fDesc" readonly placeholder="Descripción del anime (se buscará automáticamente)"></textarea>
+  <div id="seasonsInfo" style="display:none;margin:10px 0"></div>
+  <label>Sección</label>
+  <div class="tabs" id="fStTabs" style="margin:0">
+    <div class="tab on" data-st="Visto">Visto</div>
+    <div class="tab" data-st="Viendo">Viendo</div>
+  </div>
+  <input type="hidden" id="fSt" value="Visto">
+  <div class="row">
+    <button class="btn dng" id="bDel" style="display:none">Borrar</button>
+    <button class="btn soft" id="bCancel" style="flex:1">Cancelar</button>
+    <button class="btn softac" id="bSave" style="flex:1">Guardar</button>
+  </div>
+</div></div>
+
+<div class="ov" id="ovBulk"><div class="sheet">
+  <h2>Importar tu lista de papel</h2>
+  <div class="sub">Sube tu archivo <b>.docx</b>, <b>.xlsx</b> (o .txt), o pega los títulos, uno por línea. Revisa el texto y pulsa «Añadir todo». Si tu documento tiene títulos de sección (Visto, Viendo, Pendiente) o de categoría (Acción, Comedia…), se respetan; si no, todo entra como «Visto».</div>
+  <button class="btn" id="bFile" style="width:100%">📄 Elegir archivo (Word, Excel o texto)</button>
+  <input type="file" id="docFile" accept=".docx,.xlsx,.txt" hidden>
+  <textarea id="bulkTx" placeholder="Naruto&#10;Death Note&#10;One Piece"></textarea>
+  <div class="msg" id="bMsg"></div>
+  <div class="row"><button class="btn" data-close="ovBulk" style="flex:1">Cerrar</button><button class="btn pri" id="bGo" style="flex:1">Añadir todo</button></div>
+</div></div>
+
+<div class="lb" id="ovCover"><img id="lbImg" alt="Portada"></div>
+
+<div class="ov" id="ovExp"><div class="sheet">
+  <h2>Exportar lista</h2>
+  <div class="row" style="margin-bottom:12px">
+    <button class="btn" id="bExpTxt" style="flex:1">.txt</button>
+    <button class="btn" id="bExpDocx" style="flex:1">.docx</button>
+  </div>
+  <textarea id="expTx" readonly style="min-height:220px"></textarea>
+  <div class="msg" id="eMsg"></div>
+  <div class="row"><button class="btn" data-close="ovExp" style="flex:1">Cerrar</button><button class="btn" id="bCopy" style="flex:1">Copiar</button><button class="btn pri" id="bDl" style="flex:1">Descargar</button></div>
+</div></div>
+
+<script>
+const CATS=["Acción","Aventura","Comedia","Drama","Fantasía","Romance","Ciencia ficción","Terror","Slice of life","Deportes","Isekai","Misterio","Otro"];
+const STS=["Visto","Viendo"];
+const GMAP={Action:"Acción",Adventure:"Aventura",Comedy:"Comedia",Drama:"Drama",Fantasy:"Fantasía",Romance:"Romance","Sci-Fi":"Ciencia ficción",Horror:"Terror","Slice of Life":"Slice of life",Sports:"Deportes",Mystery:"Misterio",Supernatural:"Fantasía",Thriller:"Misterio","Psychological":"Drama","Mecha":"Ciencia ficción",Music:"Romance",Isekai:"Isekai","Science Fiction":"Ciencia ficción","School":"Slice of life","Slice of Life":"Slice of life","Suspense":"Misterio","Super Power":"Acción","Seinen":"Drama","Shoujo":"Romance","Shounen":"Acción","Kids":"Aventura"};
+const $=id=>document.getElementById(id);
+let items=[],st="Visto",cat="Todas",editId=null,cover=null,coverManual=false,episodesFound=null,categoriesFound=null,seasonsFound=null,selSeasonId=null,sortMode="az",bulkCancel=false;
+try{items=JSON.parse(localStorage.getItem("anime-list")||"[]")}catch(e){}
+const save=()=>{try{localStorage.setItem("anime-list",JSON.stringify(items))}catch(e){alert("No se pudo guardar (almacenamiento lleno).")}
+  items.forEach(i=>{if(i.cv)cacheCover(i.cv)})};
+const hue=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return h};
+const bg=(t,c)=>`background-image:${c?`url(${c}),`:""}linear-gradient(160deg,hsl(${hue(t)},65%,48%),hsl(${(hue(t)+50)%360},70%,30%))`;
+const ini=t=>c=>c;
+const coverCache={},coverPending=new Set(),coverFailed=new Set();
+let coverDb=null;
+const covOf=i=>i?coverCache[i.cv]||i.cv:null;
+const cvHtml=i=>{const c=covOf(i);return c?`<img class="cvimg" loading="lazy" src="${esc(c)}" alt="">`:esc(i.t[0].toUpperCase())};
+const curCover=()=>cover?coverCache[cover]||cover:null;
+function idbOpen(){return new Promise(res=>{try{const r=indexedDB.open("anime-covers",1);r.onupgradeneeded=()=>r.result.createObjectStore("covers");r.onsuccess=()=>res(r.result);r.onerror=()=>res(null)}catch(e){res(null)}})}
+async function idbLoadAll(){if(!coverDb)return;try{await new Promise(res=>{const req=coverDb.transaction("covers","readonly").objectStore("covers").openCursor();req.onsuccess=e=>{const c=e.target.result;if(c){coverCache[c.key]=c.value;c.continue()}else res()};req.onerror=()=>res()})}catch(e){}}
+async function cacheCover(url){
+  if(!url||!/^https?:/i.test(url)||coverCache[url]||coverPending.has(url)||coverFailed.has(url))return;
+  if(!navigator.onLine)return;
+  coverPending.add(url);
+  try{
+    const b=await(await fetch(url)).blob();
+    const d=await new Promise(res=>{const f=new FileReader();f.onload=()=>res(f.result);f.readAsDataURL(b)});
+    coverCache[url]=d;
+    if(coverDb)try{coverDb.transaction("covers","readwrite").objectStore("covers").put(d,url)}catch(e){}
+    swapCachedCovers();
+  }catch(e){coverFailed.add(url);console.warn("⚠️ Portada no cacheada:",url)}
+  coverPending.delete(url);
+}
+function swapCachedCovers(){
+  document.querySelectorAll("#grid .it").forEach(el=>{
+    const it=items.find(i=>i.id===el.dataset.id);
+    const c=it&&coverCache[it.cv];
+    if(c){const img=el.querySelector(".cvimg");if(img)img.src=c}
+  });
+}
+function render(animate=true){
+  $("count").textContent=items.length+" anime en total";
+  $("tabs").innerHTML=STS.map(s=>`<div class="tab ${s===st?"on":""}" data-s="${s}">${s} (${items.filter(i=>i.st===s).length})</div>`).join("");
+  const allCats=new Set();
+  items.forEach(i=>{
+    if(i.cats)i.cats.forEach(c=>allCats.add(c));
+    if(i.cat)allCats.add(i.cat);
+  });
+  const used=["Todas",...CATS.filter(c=>items.some(i=>i.st===st&&(i.cats?i.cats.includes(c):i.cat===c)))];
+  if(!used.includes(cat))cat="Todas";
+  $("chips").innerHTML=used.map(c=>`<div class="chip ${c===cat?"on":""}" data-c="${c}">${c}</div>`).join("");
+  const q=$("q").value.trim().toLowerCase();
+  const SORTS={az:(a,b)=>a.t.localeCompare(b.t),za:(a,b)=>b.t.localeCompare(a.t),new:(a,b)=>(b.a||0)-(a.a||0),old:(a,b)=>(a.a||0)-(b.a||0)};
+  const list=items.filter(i=>i.st===st&&(cat==="Todas"||(i.cats?i.cats.includes(cat):i.cat===cat))&&i.t.toLowerCase().includes(q)).sort(SORTS[sortMode]||SORTS.az);
+  const grid=$("grid");
+  if(animate){
+    grid.style.opacity="0";
+    grid.style.transform="translateY(10px)";
+    setTimeout(()=>{
+      grid.innerHTML=list.length?list.map(i=>`<div class="it" data-id="${i.id}"><div class="cv" style="${bg(i.t,null)};position:relative">${cvHtml(i)}${mainSeasonCount(i)>1?`<span class="seasons">${mainSeasonCount(i)} temp</span>`:i.episodes?`<span class="episodes">${i.episodes==1?"película":i.episodes+" ep"}</span>`:""}</div><div class="meta"><div class="t">${esc(i.t)}</div><div class="c">${(i.cats?i.cats.join(", "):i.cat)}</div></div></div>`).join(""):`<div class="empty" style="grid-column:1/-1">Nada por aquí todavía.<br>Pulsa + para añadir.</div>`;
+      grid.style.opacity="1";
+      grid.style.transform="translateY(0)";
+    },150);
+  }else{
+    grid.innerHTML=list.length?list.map(i=>`<div class="it" data-id="${i.id}"><div class="cv" style="${bg(i.t,null)};position:relative">${cvHtml(i)}${mainSeasonCount(i)>1?`<span class="seasons">${mainSeasonCount(i)} temp</span>`:i.episodes?`<span class="episodes">${i.episodes==1?"película":i.episodes+" ep"}</span>`:""}</div><div class="meta"><div class="t">${esc(i.t)}</div><div class="c">${(i.cats?i.cats.join(", "):i.cat)}</div></div></div>`).join(""):`<div class="empty" style="grid-column:1/-1">Nada por aquí todavía.<br>Pulsa + para añadir.</div>`;
+  }
+}
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function isMainSeason(s){
+  if(!s)return false;
+  if(s.main!==undefined)return !!s.main;
+  if(s.type)return (s.type==="TV"||s.type==="ONA")&&s.episodes&&s.episodes!=="1"&&s.episodes!==1;
+  return !!(s.episodes&&s.episodes!=="1"&&s.episodes!==1);
+}
+function seasonTypeLabel(t){
+  return {Movie:"Película",OVA:"OVA",Special:"Especial",ONA:"ONA",Music:"Música","TV Special":"Especial TV",TV:"TV"}[t]||t||"Extra";
+}
+function mainSeasonCount(i){
+  if(!i||!i.seasons)return 0;
+  const mains=i.seasons.filter(isMainSeason);
+  const names=new Set(mains.map(s=>normalizeTitle(s.name||"")));
+  return mains.filter(s=>{
+    const m=normalizeTitle(s.name||"").match(/^(.*)\s+part\s+\d+$/);
+    return !(m&&names.has(m[1].trim()));
+  }).length;
+}
+function seasonsInfoHTML(seasons){
+  const mains=seasons.filter(isMainSeason);
+  const extras=seasons.filter(s=>!isMainSeason(s));
+  const LIMIT=6;
+  const item=s=>`<li class="seas-item" data-mal="${s.mal_id||""}" data-name="${esc(s.name)}" title="Click para ver la info de esta parte">${esc(s.name)}${s.episodes&&s.episodes!=="0"?" - "+s.episodes+" episodios":""}</li>`;
+  const extraItem=s=>`<li class="seas-item" data-mal="${s.mal_id||""}" data-name="${esc(s.name)}" title="Click para ver la info de esta parte">${esc(s.name)} - ${seasonTypeLabel(s.type)}${s.type!=="Movie"&&s.episodes&&s.episodes!=="0"?", "+s.episodes+" ep":""}</li>`;
+  const mainsVis=mains.slice(0,LIMIT),mainsHid=mains.slice(LIMIT);
+  const extrasSlots=Math.max(0,LIMIT-mainsVis.length);
+  const extrasVis=extras.slice(0,extrasSlots),extrasHid=extras.slice(extrasSlots);
+  const collapsible=inner=>`<div class="seas-collapsible"><div>${inner}</div></div>`;
+  const ul=(items,m)=>`<ul style="margin:${m||"5px"};padding-left:20px">${items.map(item).join("")}</ul>`;
+  const xul=(items,m)=>`<ul style="margin:${m||"5px"};padding-left:20px">${items.map(extraItem).join("")}</ul>`;
+  const section=(title,count,vis,hid,isExtra,mtop)=>{
+    if(!count)return"";
+    const header=`<strong style="display:block;margin-top:${mtop}px">${title} (${count}):</strong>`;
+    const make=isExtra?xul:ul;
+    if(!vis.length&&hid.length)return collapsible(header+make(hid));
+    const list=make(vis,hid.length?"5px 5px 0":undefined);
+    const hidList=hid.length?collapsible(make(hid,"0 5px")):"";
+    return header+list+hidList;
+  };
+  const hiddenCount=mainsHid.length+extrasHid.length;
+  let h=`<div style="background:var(--bd);padding:10px;border-radius:6px;font-size:12px">`;
+  h+=section("Temporadas",mains.length,mainsVis,mainsHid,false,0);
+  h+=section("Contenido Adicional",extras.length,extrasVis,extrasHid,true,5);
+  if(hiddenCount)h+=`<button type="button" class="seas-more">Mostrar más (${hiddenCount})</button>`;
+  return h+"</div>";
+}
+function markSeasonSel(){
+  const els=document.querySelectorAll("#seasonsInfo .seas-item");
+  if(!els.length)return;
+  let marked=false;
+  if(selSeasonId){
+    const el=document.querySelector(`#seasonsInfo .seas-item[data-mal="${selSeasonId}"]`);
+    if(el){el.classList.add("sel");marked=true}
+  }
+  if(!marked)els[0].classList.add("sel");
+}
+const open=id=>{
+  const el=$(id);
+  el.style.display="flex";
+  setTimeout(()=>el.classList.add("show"),10);
+};
+const close=id=>{
+  const el=$(id);
+  el.classList.remove("show");
+  setTimeout(()=>el.style.display="none",300);
+};
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>close(b.dataset.close));
+$("fStTabs").onclick=e=>{
+  const b=e.target.closest(".tab");if(!b)return;
+  $("fSt").value=b.dataset.st;
+  $("fStTabs").querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t===b));
+};
+$("tabs").onclick=e=>{if(e.target.dataset.s){st=e.target.dataset.s;render()}};
+$("chips").onclick=e=>{if(e.target.dataset.c){cat=e.target.dataset.c;render()}};
+$("sortSel").onchange=e=>{sortMode=e.target.value;render()};
+const _savedTheme=localStorage.getItem("anime-theme");
+const _theme=_savedTheme==="light"?"day":(_savedTheme||"dark");
+$("themeSel").value=_theme;
+document.documentElement.setAttribute("data-theme",_theme);
+localStorage.setItem("anime-theme",_theme);
+$("themeSel").onchange=e=>{
+  const v=e.target.value||"dark";
+  document.documentElement.setAttribute("data-theme",v);
+  localStorage.setItem("anime-theme",v);
+};
+$("q").oninput=render;
+$("searchToggle").onclick=()=>{
+  const ov=$("searchOverlay");
+  if(ov.classList.contains("show")){
+    ov.classList.remove("show");
+    if($("q").value){$("q").value="";render()}
+  }else{
+    ov.classList.add("show");
+    $("q").focus();
+  }
+};
+$("searchClose").onclick=()=>{
+  $("searchOverlay").classList.remove("show");
+  if($("q").value){$("q").value="";render()}
+};
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape")$("searchOverlay").classList.remove("show");
+});
+function prev(){const t=$("fName").value||"?";$("prev").style.cssText=bg(t,curCover());$("prev").textContent=cover?"":t[0].toUpperCase()}
+$("fName").oninput=prev;
+$("prev").onclick=()=>{if(cover){$("lbImg").src=curCover();open("ovCover")}};
+$("ovCover").onclick=()=>close("ovCover");
+$("seasonsInfo").addEventListener("click",async e=>{
+  const moreBtn=e.target.closest(".seas-more");
+  if(moreBtn){
+    const collapsibles=document.querySelectorAll("#seasonsInfo .seas-collapsible");
+    const anyClosed=[...collapsibles].some(x=>!x.classList.contains("open"));
+    const total=[...collapsibles].reduce((n,x)=>n+x.querySelectorAll("li").length,0);
+    collapsibles.forEach(x=>x.classList.toggle("open",anyClosed));
+    moreBtn.textContent=anyClosed?"Mostrar menos":"Mostrar más ("+total+")";
+    return;
+  }
+  const li=e.target.closest(".seas-item");
+  if(!li||!li.dataset.mal||li.classList.contains("loading"))return;
+  if(!navigator.onLine){
+    $("fMsg").textContent="⚠️ Sin conexión a internet.";
+    setTimeout(()=>{if($("fMsg").textContent.startsWith("⚠️"))$("fMsg").textContent=""},3000);
+    return;
+  }
+  const malId=li.dataset.mal;
+  document.querySelectorAll("#seasonsInfo .seas-item.sel").forEach(x=>x.classList.remove("sel"));
+  li.classList.add("sel","loading");
+  try{
+    const r=await fetchWithRetry("https://api.tenrai.org/v1/anime/"+malId);
+    if(!r||!r.ok)throw new Error("sin respuesta");
+    const info=(await r.json()).data;
+    if(!info)throw new Error("sin datos");
+    const img=info.images&&info.images.jpg&&info.images.jpg.large_image_url;
+    const syn=info.synopsis||"";
+    const tr=syn?await translateToSpanish(syn):null;
+    const cats=mapGenresToCategories((info.genres||[]).map(g=>g.name));
+    selSeasonId=malId;
+    if(img&&(!(cover&&coverManual)||confirm("Ya tienes una portada personal. ¿Reemplazarla con la de esta temporada?"))){
+      cover=img;coverManual=false;prev();
+    }
+    if(tr)$("fDesc").value=tr;
+    if(cats.length)categoriesFound=cats;
+    console.log("📺 Info actualizada desde:", li.dataset.name||info.title);
+  }catch(err){
+    console.error("❌ Error cargando temporada:",err.message);
+    li.classList.remove("sel");
+    $("fMsg").textContent="⚠️ No se pudo cargar la info de esa temporada.";
+    setTimeout(()=>{if($("fMsg").textContent.startsWith("⚠️"))$("fMsg").textContent=""},3000);
+  }finally{
+    li.classList.remove("loading");
+  }
+});
+let suggestionTimeout=null;
+$("fName").oninput=e=>{
+  prev();
+  const value=e.target.value.trim();
+  if(value.length<2){
+    $("suggestions").style.display="none";
+    return;
+  }
+  clearTimeout(suggestionTimeout);
+  if(!navigator.onLine){$("suggestions").style.display="none";return}
+  suggestionTimeout=setTimeout(async()=>{
+    try{
+      const r=await fetch("https://api.tenrai.org/v1/anime?limit=5&q="+encodeURIComponent(value));
+      if(r.ok){
+        const j=await r.json();
+        const list=j.data||[];
+        if(list.length>0){
+          $("suggestions").innerHTML=list.map(a=>{
+            const variants=[a.title||"",a.title_english||"",a.title_japanese||""].filter(Boolean);
+            let primary=variants[0]||"";
+            let bestSim=-1;
+            for(const v of variants){
+              const s=similarity(value,v);
+              if(s>bestSim){bestSim=s;primary=v}
+            }
+            const sub=variants.filter(v=>v!==primary).join(" · ");
+            return `
+            <div class="suggestion" data-title="${primary}">
+              <div class="title">${primary}</div>
+              <div class="subtitle">${sub}</div>
+            </div>`;
+          }).join("");
+          $("suggestions").style.display="block";
+          document.querySelectorAll(".suggestion").forEach(s=>{
+            s.onclick=()=>{
+              $("fName").value=s.dataset.title;
+              $("suggestions").style.display="none";
+              prev();
+            };
+          });
+        }else{
+          $("suggestions").style.display="none";
+        }
+      }
+    }catch(e){
+      console.error("Error en autocompletado:",e);
+    }
+  },300);
+};
+document.addEventListener("click",e=>{
+  if(!e.target.closest(".autocomplete"))$("suggestions").style.display="none";
+});
+function openForm(id){
+  editId=id;const i=items.find(x=>x.id===id);
+  $("fTitle").textContent=i?"Editar anime":"Nuevo anime";
+  $("fName").value=i?i.t:"";$("fSt").value=i?i.st:st;
+  $("fStTabs").querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.st===$("fSt").value));
+  $("fDesc").value=i?i.desc||"":"";
+  cover=i?i.cv:null;coverManual=i?i.cvManual||false:false;$("bDel").style.display=i?"":"none";$("fMsg").textContent="";
+  episodesFound=null;categoriesFound=null;seasonsFound=null;
+  if(i&&i.episodes)episodesFound=i.episodes;
+  if(i&&i.cats)categoriesFound=i.cats;
+  if(i&&i.seasons)seasonsFound=i.seasons;
+  selSeasonId=i?(i.sel||null):null;
+  const seasonsInfo=$("seasonsInfo");
+  const isSingleMovie=i&&(i.episodes==="1"||i.episodes===1);
+  if(i&&i.seasons&&i.seasons.length>0&&!isSingleMovie){
+    seasonsInfo.style.display="block";
+    seasonsInfo.innerHTML=seasonsInfoHTML(i.seasons);
+  }else{
+    seasonsInfo.style.display="none";
+    seasonsInfo.innerHTML="";
+  }
+  markSeasonSel();
+  prev();open("ovForm");
+}
+$("fab").onclick=()=>openForm(null);
+$("grid").onclick=e=>{const c=e.target.closest(".it");if(c)openForm(c.dataset.id)};
+$("bCancel").onclick=()=>close("ovForm");
+$("bDel").onclick=()=>{if(confirm("¿Borrar este anime?")){items=items.filter(i=>i.id!==editId);save();close("ovForm");render()}};
+
+const ABBREVIATIONS={
+  "oregairu":"Yahari Ore no Seishun Love Comedy wa Machigatteiru",
+  "oregairu":"Yahari Ore no Seishun Love Comedy wa Machigatteiru",
+  "oregairu":"My Youth Romantic Comedy Is Wrong, As I Expected",
+  "kimi no nawa":"Kimi no Na wa",
+  "kimi no nawa":"Your Name",
+  "lucky star":"Lucky☆Star",
+  "steins gate":"Steins;Gate",
+  "fate stay night":"Fate/stay night",
+  "fate zero":"Fate/Zero",
+  "sword art online":"Sword Art Online",
+  "sao":"Sword Art Online",
+  "attack on titan":"Shingeki no Kyojin",
+  "aot":"Shingeki no Kyojin",
+  "demon slayer":"Kimetsu no Yaiba",
+  "ds":"Kimetsu no Yaiba",
+  "jjba":"JoJo no Kimyou na Bouken",
+  "jjk":"Jujutsu Kaisen",
+  "one punch man":"One Punch Man",
+  "opm":"One Punch Man",
+  "mob psycho":"Mob Psycho 100",
+  "one piece":"One Piece",
+  "op":"One Piece",
+  "naruto":"Naruto",
+  "bleach":"Bleach",
+  "death note":"Death Note",
+  "fullmetal alchemist":"Fullmetal Alchemist",
+  "fma":"Fullmetal Alchemist",
+  "hunter x hunter":"Hunter x Hunter",
+  "hxh":"Hunter x Hunter",
+  "my hero academia":"Boku no Hero Academia",
+  "mha":"Boku no Hero Academia",
+  "bnha":"Boku no Hero Academia",
+  "chainsaw man":"Chainsaw Man",
+  "csm":"Chainsaw Man",
+  "tokyo ghoul":"Tokyo Ghoul",
+  "re zero":"Re:Zero",
+  "rezero":"Re:Zero",
+  "konosuba":"Kono Subarashii Sekai ni Shukufuku wo",
+  "overlord":"Overlord",
+  "slime":"Tensei Shitara Slime Datta Ken",
+  "mushoku tensei":"Mushoku Tensei",
+  "no game no life":"No Game No Life",
+  "cowboy bebop":"Cowboy Bebop",
+  "evangelion":"Neon Genesis Evangelion",
+  "nge":"Neon Genesis Evangelion",
+  "code geass":"Code Geass",
+  "dr stone":"Dr. Stone",
+  "gundam":"Mobile Suit Gundam",
+  "trigun":"Trigun",
+  "gurren lagann":"Tengen Toppa Gurren Lagann",
+  "made in abyss":"Made in Abyss",
+  "pokemon":"Pokemon",
+  "digimon":"Digimon",
+  "yu gi oh":"Yu-Gi-Oh!",
+  "yugioh":"Yu-Gi-Oh!",
+  "fairy tail":"Fairy Tail",
+  "black clover":"Black Clover",
+  "nanatsu no taizai":"Nanatsu no Taizai",
+  "seven deadly sins":"Nanatsu no Taizai",
+  "frieren":"Frieren: Beyond Journey's End",
+  "berserk":"Berserk",
+  "mushishi":"Mushishi",
+  "fate":"Fate",
+  "madoka":"Puella Magi Madoka Magica",
+  "sailor moon":"Sailor Moon",
+  "cardcaptor sakura":"Cardcaptor Sakura",
+  "inuyasha":"Inuyasha",
+  "dungeon meshi":"Dungeon Meshi",
+  "delicious in dungeon":"Dungeon Meshi",
+  "danmachi":"Dungeon ni Deai wo Motomeru no wa Machigatteiru Darou ka",
+  "spirited away":"Spirited Away",
+  "chihiro":"Spirited Away",
+  "totoro":"My Neighbor Totoro",
+  "princess mononoke":"Princess Mononoke",
+  "mob psycho":"Mob Psycho 100",
+  "gintama":"Gintama",
+  "spy x family":"Spy x Family",
+  "grand blue":"Grand Blue",
+  "saiki":"The Disastrous Life of Saiki K",
+  "ouran":"Ouran High School Host Club",
+  "bocchi":"Bocchi the Rock!",
+  "mashle":"Mashle",
+  "assassination classroom":"Assassination Classroom",
+  "kaguya sama":"Kaguya-sama: Love is War",
+  "love is war":"Kaguya-sama: Love is War",
+  "horimiya":"Horimiya",
+  "fruits basket":"Fruits Basket",
+  "nana":"Nana",
+  "nisekoi":"Nisekoi",
+  "rent a girlfriend":"Kanojo, Okarishimasu",
+  "kanojo okarishimasu":"Kanojo, Okarishimasu",
+  "date a live":"Date A Live",
+  "clannad":"Clannad",
+  "violet evergarden":"Violet Evergarden",
+  "your lie in april":"Shigatsu wa Kimi no Uso",
+  "shigatsu wa kimi no uso":"Shigatsu wa Kimi no Uso",
+  "anohana":"Anohana: The Flower We Saw That Day",
+  "a silent voice":"Koe no Katachi",
+  "koe no katachi":"Koe no Katachi",
+  "angel beats":"Angel Beats!",
+  "oshi no ko":"Oshi no Ko",
+  "classroom of the elite":"Youkoso Jitsuryoku Shijou Shugi no Kyoushitsu e",
+  "haikyuu":"Haikyuu!!",
+  "slam dunk":"Slam Dunk",
+  "kuroko no basket":"Kuroko no Basuke",
+  "blue lock":"Blue Lock",
+  "hajime no ippo":"Hajime no Ippo"
+};
+
+function normalizeTitle(title){
+  return title.toLowerCase()
+    .replace(/[☆★✩✪]/g,"star")
+    .replace(/[;:・]/g,"")
+    .replace(/[！!]/g,"")
+    .replace(/[？?]/g,"")
+    .replace(/\s+/g," ")
+    .trim();
+}
+
+function similarity(s1,s2){
+  const a=normalizeTitle(s1),b=normalizeTitle(s2);
+  if(a===b)return 1;
+  if(a.includes(b)||b.includes(a))return 0.8;
+  let common=0;
+  for(let i=0;i<Math.min(a.length,b.length);i++)if(a[i]===b[i])common++;
+  return common/Math.max(a.length,b.length);
+}
+
+function mapGenresToCategories(genres){
+  const categories=new Set();
+  if(!genres)return[];
+  genres.forEach(g=>{
+    const mapped=GMAP[g];
+    if(mapped)categories.add(mapped);
+  });
+  return Array.from(categories);
+}
+
+function postProcessTranslation(text){
+  const corrections=[
+    {from:/Desde que tenemos memoria/gi,to:"Desde que se tiene memoria"},
+    {from:/Desde que todo el mundo recuerda/gi,to:"Desde que se tiene memoria"},
+    {from:/A partir de ahora/gi,to:"A partir de este momento"},
+    {from:/En este momento/gi,to:"Actualmente"},
+    {from:/Todos nosotros/gi,to:"Todos"},
+    {from:/Cada uno de nosotros/gi,to:"Cada uno"},
+    {from:/Nuestro mundo/gi,to:"El mundo"},
+    {from:/Nuestra historia/gi,to:"La historia"}
+  ];
+  let corrected=text;
+  for(const correction of corrections){
+    corrected=corrected.replace(correction.from,correction.to);
+  }
+  corrected=corrected.replace(/\[Escrito por[^\]]*\]/gi,"");
+  corrected=corrected.replace(/\[Written by[^\]]*\]/gi,"");
+  corrected=corrected.replace(/\((?:Source|Fuente):[^)]*\)/gi,"");
+  corrected=corrected.replace(/\[(?:Source|Fuente):[^\]]*\]/gi,"");
+  corrected=corrected.replace(/^\s*(?:Source|Fuente):[^\n]*/gim,"");
+  corrected=corrected.replace(/\n\n+/g,"\n\n");
+  return corrected.trim();
+}
+
+async function translateWithRetry(text, retries=3, delay=2000){
+  for(let i=0;i<retries;i++){
+    try{
+      console.log(`🌐 Traduciendo intento ${i+1}/${retries}...`);
+      const r=await fetch("https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=es&dt=t&q="+encodeURIComponent(text));
+      if(r.ok){
+        const result=await r.json();
+        if(result&&result[0]){
+          let translated="";
+          for(const segment of result[0]){
+            if(segment&&segment[0]){
+              translated+=segment[0];
+            }
+          }
+          if(translated)return translated;
+        }
+      }else if(r.status===429){
+        const waitTime=delay*(i+1);
+        console.log(`⏳ Rate limit detectado, esperando ${waitTime}ms...`);
+        await new Promise(r=>setTimeout(r,waitTime));
+        continue;
+      }
+    }catch(e){
+      console.error(`❌ Error en intento ${i+1}:`, e.message);
+      if(i===retries-1)throw e;
+      await new Promise(r=>setTimeout(r,delay));
+    }
+  }
+  return null;
+}
+
+async function translateToSpanish(text){
+  if(!text)return"";
+  if(text.length<10)return text;
+  console.log("🌐 Traduciendo texto (", text.length, "caracteres) al español...");
+  try{
+    const translated=await translateWithRetry(text);
+    if(translated){
+      const corrected=postProcessTranslation(translated);
+      if(corrected!==translated){
+        console.log("🔧 Correcciones post-traducción aplicadas");
+      }
+      console.log("✅ Traducción completada (", corrected.length, "caracteres)");
+      return corrected;
+    }
+  }catch(e){
+    console.error("❌ Error en traducción:", e);
+  }
+  console.log("⚠️ Traducción falló, se conserva la descripción existente");
+  return null;
+}
+
+async function fetchWithRetry(url, retries=3, delay=1000){
+  for(let i=0;i<retries;i++){
+    try{
+      const controller=new AbortController();
+      const timeout=setTimeout(()=>controller.abort(),15000);
+      const r=await fetch(url,{signal:controller.signal});
+      clearTimeout(timeout);
+      if(r.ok){
+        if(i>0)console.log("✅ Reintento exitoso (intento", i+1, "):", url.substring(0,80));
+        return r;
+      }
+      if(r.status===429){
+        const retryAfter=r.headers.get("Retry-After");
+        const waitTime=retryAfter?parseInt(retryAfter)*1000:delay;
+        console.log("⏳ 429 en", url.substring(0,80), "- reintento", i+1+"/"+retries, "- esperando", waitTime+"ms");
+        await new Promise(r=>setTimeout(r,waitTime));
+        continue;
+      }
+      console.log("❌ Error HTTP", r.status, "en", url.substring(0,80));
+      return null;
+    }catch(e){
+      if(i===retries-1){
+        console.log("❌ Falló después de", retries, "intentos:", url.substring(0,80), "-", e.message);
+        throw e;
+      }
+      console.log("⚠️ Error de red en", url.substring(0,80), "- reintentando...");
+      await new Promise(r=>setTimeout(r,delay));
+    }
+  }
+  console.log("❌ Se agotaron los reintentos, se devuelve null:", url.substring(0,80));
+  return null;
+}
+
+async function findDescription(title){
+  try{
+    const normalized=normalizeTitle(title);
+    const expanded=ABBREVIATIONS[normalized]||title;
+    const r=await fetchWithRetry("https://api.tenrai.org/v1/anime?limit=5&q="+encodeURIComponent(expanded));
+    if(!r||!r.ok)return null;
+    const j=await r.json();
+    const list=j.data||[];
+    let best=null,bestScore=0;
+    for(const a of list){
+      if(!a)continue;
+      const scores=[
+        similarity(expanded,a.title_english||""),
+        similarity(expanded,a.title||""),
+        similarity(expanded,a.title_japanese||"")
+      ];
+      const maxScore=Math.max(...scores);
+      if(maxScore>bestScore){bestScore=maxScore;best=a}
+    }
+    if(!best||bestScore<0.3)return null;
+    const synopsis=best.synopsis||"";
+    console.log("📄 Sinopsis original (", synopsis.length, "caracteres):", synopsis.substring(0, 200)+"...");
+    if(synopsis){
+      const translated=await translateToSpanish(synopsis);
+      if(!translated){
+        console.log("⚠️ Traducción falló para:", title, "- se conserva descripción existente");
+        return null;
+      }
+      console.log("📝 Texto traducido (", translated.length, "caracteres):", translated.substring(0, 200)+"...");
+      console.log("✅ Descripción:", title, "->", best.title);
+      return translated;
+    }
+    return "";
+  }catch(e){
+    console.error("❌ Error:", title, e.message);
+    return null;
+  }
+}
+
+async function findEpisodes(title){
+  try{
+    const normalized=normalizeTitle(title);
+    const expanded=ABBREVIATIONS[normalized]||title;
+    const r=await fetchWithRetry("https://api.tenrai.org/v1/anime?limit=5&q="+encodeURIComponent(expanded));
+    if(!r||!r.ok)return null;
+    const j=await r.json();
+    const list=j.data||[];
+    let best=null,bestScore=0;
+    for(const a of list){
+      if(!a)continue;
+      const scores=[
+        similarity(expanded,a.title_english||""),
+        similarity(expanded,a.title||""),
+        similarity(expanded,a.title_japanese||"")
+      ];
+      const maxScore=Math.max(...scores);
+      if(maxScore>bestScore){bestScore=maxScore;best=a}
+    }
+    if(!best||bestScore<0.3)return null;
+    const episodes=best.episodes||0;
+    console.log("📺 Episodios:", title, "->", best.title, "| Cantidad:", episodes);
+    return episodes.toString();
+  }catch(e){
+    console.error("❌ Error buscando episodios:", title, e.message);
+    return null;
+  }
+}
+
+async function findSeasons(title){
+  try{
+    const normalized=normalizeTitle(title);
+    const expanded=ABBREVIATIONS[normalized]||title;
+    const r=await fetchWithRetry("https://api.tenrai.org/v1/anime?limit=5&q="+encodeURIComponent(expanded));
+    if(!r||!r.ok)return null;
+    const j=await r.json();
+    const list=j.data||[];
+    let best=null,bestScore=0;
+    for(const a of list){
+      if(!a)continue;
+      const scores=[
+        similarity(expanded,a.title_english||""),
+        similarity(expanded,a.title||""),
+        similarity(expanded,a.title_japanese||"")
+      ];
+      const maxScore=Math.max(...scores);
+      if(maxScore>bestScore){bestScore=maxScore;best=a}
+    }
+    if(!best||bestScore<0.3){
+      console.log("⚠️ No se encontró coincidencia para:", title, "(mejor score:", bestScore, ")");
+      return null;
+    }
+    
+    console.log("✅ Anime encontrado:", best.title, "(MAL ID:", best.mal_id, ", score:", bestScore, ")");
+    
+    const malId=best.mal_id;
+    if(!malId){
+      console.log("⚠️ No MAL ID encontrado para:", title);
+      return null;
+    }
+    const origTitles=[best.title,best.title_english,best.title_japanese].filter(Boolean);
+    const FRANCHISE_STOP=new Set(("a an the no ga wa wo ni he of in on at to for and or is it la le el los las de du des da di del della der die das und en em na ne yo un une au aux les y et ou mais donc ni car que qui quoi dont ce cet cette ces mon ton son ma ta sa mes tes ses notre votre leur nos vos leurs").split(" "));
+    const firstTok=s=>{const w=normalizeTitle(s).split(" ").filter(x=>x&&!FRANCHISE_STOP.has(x));return w[0]||""};
+    const origFirsts=new Set(origTitles.map(firstTok).filter(Boolean));
+    
+    console.log("🔍 Buscando temporadas para:", title, "(MAL ID:", malId, ")");
+    
+    const seasons=[];
+    const altPool=[];
+    const seenMalIds=new Set();
+    const enqueued=new Set([malId]);
+    const typeByMalId=new Map();
+    const queue=[malId];
+    let origType="",origScore=0,origIsMain=false;
+    
+    try{
+      const mainR=await fetchWithRetry("https://api.tenrai.org/v1/anime/"+malId);
+      if(mainR&&mainR.ok){
+        const mainData=await mainR.json();
+        const mainInfo=mainData.data;
+        if(mainInfo)origType=mainInfo.type||"";
+        if(mainInfo)typeByMalId.set(malId,mainInfo.type||"");
+        if(mainInfo&&(mainInfo.type==="TV"||mainInfo.type==="ONA")&&mainInfo.episodes&&mainInfo.episodes>1){
+          seasons.push({
+            name:mainInfo.title_english||mainInfo.title,
+            episodes:mainInfo.episodes.toString(),
+            mal_id:malId,
+            relation:"Original",
+            type:mainInfo.type,
+            main:true
+          });
+          origIsMain=true;
+          origScore=mainInfo.score||0;
+          console.log("✅ Temporada original encontrada:", mainInfo.title_english||mainInfo.title, "-", mainInfo.episodes, "episodios");
+        }else if(mainInfo&&mainInfo.type!=="TV"&&mainInfo.type!=="ONA"){
+          console.log("    ⏭️ Anime principal no es TV/ONA:", mainInfo.type, "-", mainInfo.title_english||mainInfo.title);
+        }
+      }
+    }catch(e){
+      console.error("❌ Error obteniendo anime principal:", e.message);
+    }
+    
+    let iterations=0;
+    const REL_TYPES=["Sequel","Prequel","Alternative","Alternative Version","Side Story","Other"];
+    const mainCount=()=>seasons.filter(isMainSeason).length;
+    while(queue.length>0&&mainCount()<15&&iterations<30){
+      iterations++;
+      const currentMalId=queue.shift();
+      if(seenMalIds.has(currentMalId))continue;
+      seenMalIds.add(currentMalId);
+      
+      try{
+        const relationsR=await fetchWithRetry("https://api.tenrai.org/v1/anime/"+currentMalId+"/relations");
+        if(!relationsR||!relationsR.ok)continue;
+        
+        const relationsData=await relationsR.json();
+        const relations=relationsData.data||[];
+        console.log("📋 Relaciones para MAL ID", currentMalId, ":", relations.length);
+        
+        for(const rel of relations){
+          if(!rel.entry||!Array.isArray(rel.entry))continue;
+          
+          const isSeasonRelation=REL_TYPES.includes(rel.relation);
+          if(!isSeasonRelation){
+            console.log("    ⏭️ Relación no relevante:", rel.relation);
+            continue;
+          }
+          
+          for(const entry of rel.entry){
+            if(!entry||!entry.mal_id||enqueued.has(entry.mal_id))continue;
+            if(entry.type&&entry.type!=="anime")continue;
+            enqueued.add(entry.mal_id);
+            
+            try{
+              const seasonR=await fetchWithRetry("https://api.tenrai.org/v1/anime/"+entry.mal_id);
+              if(seasonR&&seasonR.ok){
+                const seasonData=await seasonR.json();
+                const seasonInfo=seasonData.data;
+                if(seasonInfo&&(seasonInfo.type==="Music"||seasonInfo.type==="PV"||seasonInfo.type==="CM")){
+                  console.log("    ⏭️ Saltando", seasonInfo.type, ":", entry.name);
+                  continue;
+                }
+                const candNames=[entry.name,seasonInfo.title,seasonInfo.title_english,seasonInfo.title_japanese].filter(Boolean);
+                const titleScore=Math.max(...origTitles.flatMap(o=>candNames.map(c=>similarity(o,c))));
+                if(titleScore<0.25){
+                  console.log("    ⏭️ Título no relacionado:", entry.name, "(score:", titleScore.toFixed(2), ")");
+                  continue;
+                }
+                const franchiseMatch=candNames.some(c=>origFirsts.has(firstTok(c)));
+                if(!franchiseMatch&&(seasonInfo.type==="TV"||seasonInfo.type==="ONA")){
+                  console.log("    ⏭️ Serie fuera de franquicia:", entry.name);
+                  continue;
+                }
+                if(seasonInfo&&seasonInfo.episodes){
+                  typeByMalId.set(entry.mal_id,seasonInfo.type||"");
+                  const isPrequel=rel.relation==="Prequel";
+                  const parentType=typeByMalId.get(currentMalId)||"";
+                  const durStr=seasonInfo.duration||"";
+                  const durMinMatch=durStr.match(/(\d+)\s*min/i);
+                  const durMin=/\d+\s*hr/i.test(durStr)?60:(durMinMatch?parseInt(durMinMatch[1]):null);
+                  const isChibi=/\b(mini|chibi|spin[- ]?off|short anime)\b/i.test((entry.name||"")+" "+(seasonInfo.title_english||""))||(durMin!==null&&durMin<10)||(durMin===null&&seasonInfo.episodes<=5);
+                  const isMain=!isPrequel&&!isChibi&&franchiseMatch&&seasonInfo.episodes>1&&(seasonInfo.type==="TV"||(seasonInfo.type==="ONA"&&(origType==="ONA"||(rel.relation==="Sequel"&&(parentType==="TV"||parentType==="ONA")))));
+                  const seasonObj={
+                    name:entry.name||seasonInfo.title_english||seasonInfo.title,
+                    episodes:seasonInfo.episodes.toString(),
+                    mal_id:entry.mal_id,
+                    relation:rel.relation,
+                    type:seasonInfo.type||"",
+                    main:isMain
+                  };
+                  const isAltVersion=(rel.relation==="Alternative"||rel.relation==="Alternative Version")&&seasonInfo.type==="TV"&&seasonInfo.episodes>1;
+                  if(isAltVersion){
+                    const qsim=Math.max(...candNames.map(c=>similarity(expanded,c)));
+                    altPool.push({season:seasonObj,score:seasonInfo.score||0,qsim});
+                    console.log("    🔀 Versión alternativa encontrada:", entry.name, "- score:", seasonInfo.score, "- similitud búsqueda:", qsim.toFixed(2));
+                  }else{
+                    seasons.push(seasonObj);
+                    if(isMain){
+                      console.log("✅ Temporada encontrada:", entry.name, "-", seasonInfo.episodes, "episodios");
+                    }else{
+                      console.log("    ➕ Extra encontrado:", seasonInfo.type||"?", "-", entry.name, "-", seasonInfo.episodes, "episodios");
+                    }
+                  }
+                }
+                if(franchiseMatch)queue.push(entry.mal_id);
+              }
+            }catch(e){
+              console.error("❌ Error obteniendo temporada:", entry.name, e.message);
+            }
+          }
+        }
+      }catch(e){
+        console.error("❌ Error obteniendo relaciones para MAL ID", currentMalId, ":", e.message);
+      }
+    }
+    
+    if(altPool.length){
+      const candidates=[];
+      const origIdx=origIsMain?seasons.findIndex(s=>s.relation==="Original"):-1;
+      if(origIdx>=0)candidates.push({season:seasons[origIdx],score:origScore,qsim:bestScore,name:seasons[origIdx].name});
+      for(const c of altPool)candidates.push({season:c.season,score:c.score,qsim:c.qsim,name:c.season.name});
+      candidates.sort((a,b)=>(b.qsim-a.qsim)||(b.score-a.score));
+      const winner=candidates[0];
+      for(const c of candidates.slice(1)){
+        seasons.push({...c.season,main:false});
+        console.log("    🔀 Versión alternativa en Extras:", c.name, "(score:", c.score||0, ", similitud:", (c.qsim||0).toFixed(2), ")");
+      }
+      if(origIdx>=0){
+        if(winner.season!==seasons[origIdx]){
+          seasons[origIdx]=winner.season;
+          console.log("    🔀 Versión elegida:", winner.name, "(score:", winner.score||0, ")");
+        }
+      }else{
+        seasons.push(winner.season);
+        console.log("    🔀 Versión alternativa agregada:", winner.name);
+      }
+    }
+    
+    if(seasons.length===0){
+      console.log("ℹ️ No se encontraron temporadas para:", title);
+      return null;
+    }
+    
+    const mains=seasons.filter(isMainSeason);
+    const extras=seasons.filter(s=>!isMainSeason(s));
+    console.log("✅ Temporadas encontradas para:", title, "-", mains.length, "temporadas,", extras.length, "extras");
+    console.log("   Temporadas:", mains.map(s=>s.name+" ("+s.episodes+" ep)").join(", ")||"ninguna");
+    if(extras.length)console.log("   Extras:", extras.map(s=>s.name+" ["+(s.type||"?")+"] ("+s.episodes+" ep)").join(", "));
+    return seasons;
+  }catch(e){
+    console.error("❌ Error buscando temporadas:", title, e.message);
+    return null;
+  }
+}
+
+async function findCoverAniList(title){
+  try{
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),15000);
+    const query=`query($search:String){Page(perPage:5){media(search:$search,type:ANIME){coverImage{large}title{romaji english native}genres}}}`;
+    const r=await fetch("https://graphql.anilist.co",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Accept":"application/json"},
+      body:JSON.stringify({query,variables:{search:title}}),
+      signal:controller.signal
+    });
+    clearTimeout(timeout);
+    if(!r.ok)return null;
+    const j=await r.json();
+    const list=j.data?.Page?.media||[];
+    let best=null,bestScore=0;
+    for(const a of list){
+      if(!a)continue;
+      const scores=[
+        similarity(title,a.title.english||""),
+        similarity(title,a.title.romaji||""),
+        similarity(title,a.title.native||"")
+      ];
+      const maxScore=Math.max(...scores);
+      if(maxScore>bestScore){bestScore=maxScore;best=a}
+    }
+    if(!best||bestScore<0.3)return null;
+    const imgUrl=best.coverImage.large;
+    const cats=mapGenresToCategories(best.genres||[]);
+    console.log("🖼️ Portada AniList:", title, "->", best.title.english||best.title.romaji, "| Categorías:", cats.join(", "));
+    return {cv:imgUrl,cats,name:best.title.english||best.title.romaji};
+  }catch(e){console.error("AniList error:",e);return null}
+}
+
+async function findCoverJikan(title){
+  try{
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),15000);
+    const r=await fetch("https://api.tenrai.org/v1/anime?limit=5&q="+encodeURIComponent(title),{signal:controller.signal});
+    clearTimeout(timeout);
+    if(!r.ok)return null;
+    const j=await r.json();
+    const list=j.data||[];
+    let best=null,bestScore=0;
+    for(const a of list){
+      if(!a)continue;
+      const scores=[
+        similarity(title,a.title_english||""),
+        similarity(title,a.title||""),
+        similarity(title,a.title_japanese||"")
+      ];
+      const maxScore=Math.max(...scores);
+      if(maxScore>bestScore){bestScore=maxScore;best=a}
+    }
+    if(!best||bestScore<0.3)return null;
+    const imgUrl=best.images.jpg.large_image_url;
+    const cats=mapGenresToCategories((best.genres||[]).map(g=>g.name));
+    const episodes=best.episodes||0;
+    const malId=best.mal_id;
+    let seasons=null;
+    if(malId){
+      seasons=await findSeasons(title);
+    }
+    console.log("🖼️ Portada Tenrai:", title, "->", best.title, "| Categorías:", cats.join(", "), "| Episodios:", episodes, "| Temporadas:", seasons?seasons.length:"N/A");
+    return {cv:imgUrl,cats,name:best.title_english||best.title,episodes,seasons};
+  }catch(e){return null}
+}
+
+async function findCoverKitsu(title){
+  try{
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),15000);
+    const r=await fetch("https://kitsu.io/api/edge/anime?filter[text]="+encodeURIComponent(title)+"&page[limit]=5",{signal:controller.signal});
+    clearTimeout(timeout);
+    if(!r.ok)return null;
+    const j=await r.json();
+    const list=j.data||[];
+    let best=null,bestScore=0;
+    for(const a of list){
+      if(!a)continue;
+      const attrs=a.attributes;
+      const scores=[
+        similarity(title,attrs.titles.en||""),
+        similarity(title,attrs.titles.en_jp||""),
+        similarity(title,attrs.titles.ja_jp||""),
+        similarity(title,attrs.canonicalTitle||"")
+      ];
+      const maxScore=Math.max(...scores);
+      if(maxScore>bestScore){bestScore=maxScore;best=a}
+    }
+    if(!best||bestScore<0.3)return null;
+    const imgUrl=best.attributes.posterImage.large;
+    const cats=mapGenresToCategories(best.attributes.categories||[]);
+    console.log("🖼️ Portada Kitsu:", title, "->", best.attributes.titles.en_jp||best.attributes.canonicalTitle, "| Categorías:", cats.join(", "));
+    return {cv:imgUrl,cats,name:best.attributes.titles.en_jp||best.attributes.canonicalTitle};
+  }catch(e){return null}
+}
+
+async function findCover(title){
+  const normalized=normalizeTitle(title);
+  const expanded=ABBREVIATIONS[normalized]||title;
+  const searches=[expanded,expanded+" anime",expanded.replace(/ /g,""),title,title+" anime",title.replace(/ /g,"")];
+  for(const s of searches){
+    let r=await findCoverJikan(s);
+    if(r&&r.cv)return r;
+    await new Promise(r=>setTimeout(r,500));
+    r=await findCoverAniList(s);
+    if(r&&r.cv)return r;
+    await new Promise(r=>setTimeout(r,500));
+    r=await findCoverKitsu(s);
+    if(r&&r.cv)return r;
+    await new Promise(r=>setTimeout(r,500));
+  }
+  return null;
+}
+function shrink(src){return new Promise(res=>{const im=new Image();im.onload=()=>{const w=800,h=Math.round(w*im.height/im.width);const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(im,0,0,w,h);res(c.toDataURL("image/jpeg",.92))};im.onerror=()=>res(null);im.src=src})}
+$("bFind").onclick=async()=>{
+  const t=$("fName").value.trim();if(!t)return $("fMsg").textContent="Escribe primero el nombre.";
+  if(!navigator.onLine){$("fMsg").textContent="⚠️ Sin conexión a internet.";console.log("⚠️ Sin conexión, búsqueda omitida");return}
+  if(cover&&coverManual){if(!confirm("Ya tienes una portada personal. ¿Quieres reemplazarla con la búsqueda automática?"))return}
+  console.log("🔍 Búsqueda manual iniciada:", t);
+  $("fMsg").textContent="Buscando datos…";
+  episodesFound=null;categoriesFound=null;seasonsFound=null;
+  let foundAny=false;
+  const r=await findCover(t);
+  if(r&&r.cv){
+    foundAny=true;
+    cover=r.cv;coverManual=false;if(r.cats)categoriesFound=r.cats;if(r.episodes)episodesFound=r.episodes;if(r.seasons)seasonsFound=r.seasons;prev();
+    console.log("✅ Portada manual actualizada:", t, "->", r.name, "| Categorías:", r.cats?r.cats.join(", "):"N/A", "| Episodios:", r.episodes||"N/A", "| Temporadas:", r.seasons?r.seasons.length:"N/A");
+    const seasonsInfo=$("seasonsInfo");
+    if(r.seasons&&r.seasons.length>0&&episodesFound!=="1"&&episodesFound!==1){
+      seasonsInfo.style.display="block";
+      seasonsInfo.innerHTML=seasonsInfoHTML(r.seasons);
+      markSeasonSel();
+    }else{
+      seasonsInfo.style.display="none";
+      seasonsInfo.innerHTML="";
+    }
+  }
+  else{
+    console.log("❌ Portada no encontrada:", t);
+  }
+  const desc=await findDescription(t);
+  if(desc){
+    foundAny=true;
+    $("fDesc").value=desc;
+    console.log("✅ Descripción manual actualizada:", t);
+  }
+  else{
+    console.log("❌ Descripción no encontrada:", t);
+  }
+  if(!episodesFound){
+    const ep=await findEpisodes(t);
+    if(ep){
+      foundAny=true;
+      episodesFound=ep;
+      console.log("✅ Episodios manuales encontrados:", ep);
+    }
+  }
+  if(!seasonsFound){
+    const seasons=await findSeasons(t);
+    if(seasons){
+      foundAny=true;
+      seasonsFound=seasons;
+      console.log("✅ Temporadas manuales encontradas:", seasons.length);
+      const seasonsInfo=$("seasonsInfo");
+      if(seasons.length>0&&episodesFound!=="1"&&episodesFound!==1){
+        seasonsInfo.style.display="block";
+        seasonsInfo.innerHTML=seasonsInfoHTML(seasons);
+        markSeasonSel();
+      }else{
+        seasonsInfo.style.display="none";
+        seasonsInfo.innerHTML="";
+      }
+    }
+  }
+  if(foundAny){
+    $("fMsg").textContent="✅ Datos encontrados";
+    setTimeout(()=>{if($("fMsg").textContent==="✅ Datos encontrados")$("fMsg").textContent=""},2000);
+  }else{
+    $("fMsg").textContent="No se encontró información para este anime.";
+  }
+};
+$("bUp").onclick=()=>$("file").click();
+$("file").onchange=e=>{
+  const f=e.target.files[0];
+  if(!f)return;
+  console.log("📤 Cargando imagen manual:", f.name, "(", Math.round(f.size/1024), "KB)");
+  const r=new FileReader();
+  r.onload=async()=>{
+    cover=await shrink(r.result);
+    coverManual=true;
+    prev();
+    console.log("✅ Imagen manual cargada y comprimida:", $("fName").value);
+  };
+  r.readAsDataURL(f);
+};
+
+function isValidAnimeName(name){
+  const invalidPatterns=/^(lista|mi lista|lista de anime|vacio|anime|todos|pendiente|visto|viendo|completado|favoritos|ranking|top|mejores)$/i;
+  if(invalidPatterns.test(name.trim()))return false;
+  if(name.trim().length<2)return false;
+  return true;
+}
+
+async function fetchAllCovers(){
+  const todo=items;
+  if(!todo.length){$("aMsg").textContent="No hay animes.";return}
+  if(!navigator.onLine){$("aMsg").textContent="⚠️ Sin conexión a internet. La búsqueda masiva se canceló.";console.log("⚠️ Sin conexión, búsqueda masiva omitida");return}
+  bulkCancel=false;
+  $("bCancelBulk").style.display="";
+  const onlyMissing=$("chkMissing").checked;
+  const complete=a=>a.cv&&a.desc&&a.episodes&&(a.seasons&&a.seasons.length||a.episodes==="1"||a.episodes===1);
+  let ok=0,skipped=0,doneSkip=0,descOk=0,epOk=0,seasonOk=0,errors=0;
+  for(let k=0;k<todo.length;k++){
+    if(bulkCancel)break;
+    const a=todo[k];
+    if(!isValidAnimeName(a.t)){
+      skipped++;
+      continue;
+    }
+    if(onlyMissing&&complete(a)){doneSkip++;continue}
+    const hadCover=!!a.cv;
+    $("aMsg").textContent=`Buscando ${k+1}/${todo.length}: ${a.t}…`;
+    try{
+      const r=await findCover(a.t);
+      if(r){
+        if(r.cv){
+          a.cv=r.cv;
+          a.cvManual=false;
+          ok++;
+        }
+        if(r.cats&&r.cats.length>0){
+          a.cats=r.cats;
+        }
+        if(r.episodes){
+          a.episodes=r.episodes;
+          epOk++;
+        }
+        if(r.seasons){
+          a.seasons=r.seasons;
+          seasonOk++;
+        }
+        save();render(false);
+      }
+      const desc=await findDescription(a.t);
+      if(desc){
+        a.desc=desc;
+        descOk++;
+        console.log("📝 Descripción actualizada:", a.t);
+        save();render(false);
+      }
+      if(!a.episodes){
+        const episodes=await findEpisodes(a.t);
+        if(episodes){
+          a.episodes=episodes;
+          epOk++;
+          save();render(false);
+        }
+      }
+      if(!a.seasons){
+        const seasons=await findSeasons(a.t);
+        if(seasons){
+          a.seasons=seasons;
+          seasonOk++;
+          save();render(false);
+        }
+      }
+    }catch(e){
+      console.error("Error buscando",a.t,":",e);
+      errors++;
+    }
+    await new Promise(r=>setTimeout(r,2000));
+  }
+  $("bCancelBulk").style.display="none";
+  $("aMsg").textContent=`${bulkCancel?"Cancelado. ":""}Listo: ${ok} portadas, ${descOk} descripciones, ${epOk} episodios y ${seasonOk} con temporadas de ${todo.length-skipped} animes válidos.${errors?" ("+errors+" errores).":""}${skipped?" ("+skipped+" nombres inválidos saltados).":""}${doneSkip?" ("+doneSkip+" ya completos saltados).":""}`;
+}
+$("bCovers").onclick=fetchAllCovers;
+$("bCancelBulk").onclick=()=>{bulkCancel=true;$("aMsg").textContent="Cancelando tras el anime actual…"};
+$("bSave").onclick=async()=>{
+  const t=$("fName").value.trim();if(!t)return $("fMsg").textContent="Falta el nombre.";
+  let desc=$("fDesc").value.trim();
+  let cats=categoriesFound||[];
+  let episodes=episodesFound||null;
+  let seasons=seasonsFound||null;
+  if(!editId&&!desc){
+    console.log("🔍 Buscando descripción automática para nuevo anime:", t);
+    $("fMsg").textContent="Buscando descripción…";
+    desc=await findDescription(t);
+    if(desc){
+      $("fDesc").value=desc;
+      console.log("✅ Descripción automática encontrada:", t);
+    }
+  }
+  if(!editId&&!episodes){
+    console.log("🔍 Buscando episodios automáticamente para nuevo anime:", t);
+    const ep=await findEpisodes(t);
+    if(ep){
+      episodes=ep;
+      console.log("✅ Episodios automáticos encontrados:", ep);
+    }
+  }
+  if(!editId&&!seasons){
+    console.log("🔍 Buscando temporadas automáticamente para nuevo anime:", t);
+    const s=await findSeasons(t);
+    if(s){
+      seasons=s;
+      console.log("✅ Temporadas automáticas encontradas:", s.length);
+    }
+  }
+  const o={t,cats,st:$("fSt").value,cv:cover,cvManual:coverManual,desc,episodes,seasons,sel:selSeasonId};
+  if(editId){
+    console.log("💾 Guardando cambios de anime:", t);
+    console.log("   - Categorías:", cats.join(", "));
+    console.log("   - Sección:", o.st);
+    console.log("   - Portada:", o.cv?"Sí":"No", o.cvManual?"(manual)":"(automática)");
+    console.log("   - Descripción:", o.desc?"Sí ("+o.desc.length+" caracteres)":"No");
+    console.log("   - Episodios:", o.episodes||"N/A");
+    console.log("   - Temporadas:", o.seasons?o.seasons.length:"N/A");
+    Object.assign(items.find(i=>i.id===editId),o);
+    console.log("✅ Anime actualizado manualmente:", t, "(ID:", editId, ")");
+  }else{
+    console.log("➕ Creando nuevo anime:", t);
+    console.log("   - Categorías:", cats.join(", "));
+    console.log("   - Sección:", o.st);
+    console.log("   - Portada:", o.cv?"Sí":"No", o.cvManual?"(manual)":"(automática)");
+    console.log("   - Descripción:", o.desc?"Sí ("+o.desc.length+" caracteres)":"No");
+    console.log("   - Episodios:", o.episodes||"N/A");
+    console.log("   - Temporadas:", o.seasons?o.seasons.length:"N/A");
+    items.push({id:Date.now()+""+Math.random().toString(36).slice(2,5),a:Date.now(),...o});
+    console.log("✅ Nuevo anime creado manualmente:", t);
+  }
+  save();st=o.st;close("ovForm");render(false);
+};
+
+const norm=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim();
+
+function cleanExistingDescriptions(){
+  let cleaned=0;
+  items.forEach(i=>{
+    if(i.desc){
+      const original=i.desc;
+      i.desc=i.desc.replace(/\[Escrito por[^\]]*\]/gi,"").replace(/\[Written by[^\]]*\]/gi,"").replace(/\((?:Source|Fuente):[^)]*\)/gi,"").replace(/\[(?:Source|Fuente):[^\]]*\]/gi,"").replace(/^\s*(?:Source|Fuente):[^\n]*/gim,"").replace(/\n\n+/g,"\n\n").trim();
+      if(i.desc!==original)cleaned++;
+    }
+  });
+  if(cleaned>0){
+    save();
+    console.log("🧹 Descripciones limpiadas:", cleaned);
+  }
+}
+cleanExistingDescriptions();
+function parseList(text){
+  const out=[];let s="Visto",c=[];
+  for(const raw of text.split("\n")){
+    let l=raw.trim();if(!l||/^[=\-_*\s]+$/.test(l))continue;
+    const n=norm(l.replace(/\(\d+\)\s*$/,""));
+    if(n==="mi lista de anime"||n==="vacio")continue;
+    const hs=STS.find(x=>norm(x)===n||norm(x)+"s"===n);if(hs){s=hs;continue}
+    const hc=CATS.find(x=>norm(x)===n);if(hc){c=[hc];continue}
+    l=l.replace(/^(\d+[.)]\s+|[-•*·▪●○➤>]+\s*)/,"");
+    let k=c;
+    let m=l.match(/\s*\[([^\]]+)\]\s*$/);
+    if(m){
+      const cats=m[1].split(",").map(cat=>cat.trim()).filter(cat=>CATS.includes(cat));
+      if(cats.length>0){k=cats;l=l.replace(m[0],"")}
+    }
+    l=l.trim();if(l)out.push({t:l,cats:k,st:s});
+  }
+  return out;
+}
+async function readDocx(file){
+  if(typeof JSZip==="undefined")throw new Error("nolib");
+  const z=await JSZip.loadAsync(await file.arrayBuffer());
+  const xml=await z.file("word/document.xml").async("string");
+  return xml.split(/<\/w:p>/).map(p=>(p.match(/<w:t[^>]*>[^<]*<\/w:t>|<w:tab\/>|<w:br\/>/g)||[]).map(t=>t.startsWith("<w:t")&&!t.startsWith("<w:tab")?t.replace(/<[^>]+>/g,""):" ").join("")).join("\n").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,"&");
+}
+async function readXlsx(file){
+  if(typeof JSZip==="undefined")throw new Error("nolib");
+  const z=await JSZip.loadAsync(await file.arrayBuffer());
+  let shared=[];
+  const sst=z.file("xl/sharedStrings.xml");
+  if(sst){
+    const sstXml=await sst.async("string");
+    const sstDoc=new DOMParser().parseFromString(sstXml,"text/xml");
+    shared=[...sstDoc.getElementsByTagName("si")].map(si=>(si.textContent||"").trim());
+  }
+  const sheetName=z.file("xl/worksheets/sheet1.xml")?"xl/worksheets/sheet1.xml":Object.keys(z.files).find(f=>/^xl\/worksheets\/sheet\d+\.xml$/.test(f));
+  if(!sheetName)throw new Error("empty");
+  const sheetXml=await z.file(sheetName).async("string");
+  const sheetDoc=new DOMParser().parseFromString(sheetXml,"text/xml");
+  const rows=[];
+  for(const row of sheetDoc.getElementsByTagName("row")){
+    const cells=[];
+    for(const c of row.getElementsByTagName("c")){
+      const t=c.getAttribute("t");
+      let v="";
+      if(t==="s"){
+        const idx=parseInt((c.getElementsByTagName("v")[0]||{}).textContent||"-1");
+        v=idx>=0?shared[idx]||"":"";
+      }else if(t==="inlineStr"){
+        v=(c.getElementsByTagName("t")[0]||{}).textContent||"";
+      }else{
+        v=(c.getElementsByTagName("v")[0]||{}).textContent||"";
+      }
+      v=v.trim();
+      if(v)cells.push(v);
+    }
+    if(cells.length)rows.push(cells[0]);
+  }
+  if(!rows.length)throw new Error("empty");
+  return rows.join("\n");
+}
+$("bFile").onclick=()=>$("docFile").click();
+$("docFile").onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{
+    const t=/\.docx$/i.test(f.name)?await readDocx(f):/\.xlsx$/i.test(f.name)?await readXlsx(f):await f.text();
+    $("bulkTx").value=t;$("bMsg").textContent="Se detectaron "+parseList(t).length+" animes. Revisa el texto y pulsa «Añadir todo».";
+  }catch(err){$("bMsg").textContent=err.message==="nolib"?"No se pudo cargar el lector de archivos. Copia el texto y pégalo aquí.":err.message==="empty"?"El archivo está vacío o no tiene datos.":"No pude leer ese archivo. Usa .docx, .xlsx o .txt. También puedes pegar el texto."}
+  e.target.value="";
+};
+$("bBulk").onclick=()=>{$("bMsg").textContent="";open("ovBulk")};
+$("bGo").onclick=async()=>{
+  const ents=parseList($("bulkTx").value);if(!ents.length)return;
+  const added=ents.filter(n=>!items.some(i=>i.t.toLowerCase()===n.t.toLowerCase())).map(n=>({id:Date.now()+Math.random().toString(36).slice(2,6),a:Date.now(),t:n.t,cats:n.cats&&n.cats.length>0?n.cats:[],st:n.st,cv:null,cvManual:false}));
+  ents.forEach(n=>{const e=items.find(i=>i.t.toLowerCase()===n.t.toLowerCase());if(e&&(!e.cats||e.cats.length===0)&&n.cats&&n.cats.length>0)e.cats=n.cats});items.push(...added);save();st="Visto";render();$("bulkTx").value="";
+  $("bMsg").textContent=added.length+" añadidos. Buscando portadas, episodios y temporadas…";
+  let ok=0,epOk=0,seasonOk=0;
+  for(const a of added){
+    const r=await findCover(a.t);
+    if(r){
+      a.cv=r.cv;a.cvManual=false;
+      if(r.cats&&r.cats.length>0)a.cats=r.cats;
+      if(r.episodes){a.episodes=r.episodes;epOk++}
+      if(r.seasons){a.seasons=r.seasons;seasonOk++}
+      ok++;save();render()
+    }
+    await new Promise(r=>setTimeout(r,2000))
+  }
+  $("bMsg").textContent=added.length+" añadidos. Buscando descripciones…";
+  let descOk=0;
+  for(const a of added){const desc=await findDescription(a.t);if(desc){a.desc=desc;descOk++;save();render()}await new Promise(r=>setTimeout(r,2000))}
+  $("bMsg").textContent=`Listo: ${ok} portadas, ${epOk} episodios, ${seasonOk} con temporadas y ${descOk} descripciones encontradas.`;
+};
+
+function txt(){
+  const visto=items.filter(i=>i.st==="Visto").sort((a,b)=>a.t.localeCompare(b.t));
+  return "Mi lista de Anime\nVistos ("+visto.length+")\n"+"=".repeat(20)+"\n\n"+visto.map(i=>`- ${i.t}`).join("\n")+"\n";
+}
+let exportFormat="txt";
+$("bExp").onclick=()=>{$("expTx").value=txt();$("eMsg").textContent="";exportFormat="txt";open("ovExp")};
+$("bExpTxt").onclick=()=>{$("expTx").value=txt();exportFormat="txt";$("eMsg").textContent=""};
+$("bExpDocx").onclick=()=>{$("expTx").value=txt();exportFormat="docx";$("eMsg").textContent=""};
+$("bCopy").onclick=async()=>{
+  try{await navigator.clipboard.writeText($("expTx").value);$("eMsg").textContent="Copiado. Pégalo en tus notas y guárdalo como .txt."}
+  catch(e){$("expTx").select();document.execCommand("copy");$("eMsg").textContent="Texto seleccionado; cópialo manualmente si hace falta."}
+};
+$("bDl").onclick=async()=>{
+  if(exportFormat==="txt"){
+    try{const d=await claude.use("downloads");if(d){await d.save({filename:"anime-visto.txt",data:$("expTx").value});$("eMsg").textContent="Listo.";return}}catch(e){if(e&&e.code==="cancelled")return}
+    try{
+      const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([$("expTx").value],{type:"text/plain"}));
+      a.download="anime-visto.txt";document.body.appendChild(a);a.click();a.remove();
+      $("eMsg").textContent="Si no se descargó, usa «Copiar».";
+    }catch(e){$("eMsg").textContent="Descarga no disponible aquí. Usa «Copiar»."}
+  }else if(exportFormat==="docx"){
+    try{
+      const text=$("expTx").value;
+      const zip=new JSZip();
+      const lines=text.split("\n");
+      const content=lines.map(line=>{
+        if(line.includes("=")||line.trim()==="")return`<w:p><w:r><w:t>${line.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</w:t></w:r></w:p>`;
+        return`<w:p><w:pPr><w:pStyle w:val="ListParagraph"/></w:pPr><w:r><w:t>${line.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</w:t></w:r></w:p>`;
+      }).join("");
+      const xml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${content}</w:body></w:document>`;
+      zip.file("word/document.xml",xml);
+      zip.file("[Content_Types].xml",'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>');
+      zip.file("_rels/.rels",'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
+      zip.file("word/_rels/document.xml.rels",'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>');
+      const blob=await zip.generateAsync({type:"blob"});
+      const a=document.createElement("a");
+      a.href=URL.createObjectURL(blob);
+      a.download="anime-visto.docx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      $("eMsg").textContent="Archivo .docx descargado.";
+    }catch(e){
+      $("eMsg").textContent="Error al crear .docx. Exporta como .txt.";
+    }
+  }
+};
+if(location.protocol.startsWith("http")&&"serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").then(()=>console.log("✅ PWA: service worker registrado")).catch(e=>console.warn("⚠️ PWA: no se pudo registrar sw.js",e));
+}
+console.log("🚀 Aplicación cargada. Sistema de logs activo.");
+console.log("ℹ️ Abre un anime y haz clic en 'Buscar Datos' para ver los logs.");
+console.log("ℹ️ O haz clic en 'Buscar portadas para todos' para ver el proceso masivo.");
+function migrateCategories(){
+  let migrated=0;
+  items.forEach(i=>{
+    if(i.cat&&!i.cats){
+      i.cats=[i.cat];
+      delete i.cat;
+      migrated++;
+    }
+  });
+  if(migrated>0){
+    save();
+    console.log("🔄 Categorías migradas:", migrated);
+  }
+}
+migrateCategories();
+function migrateEpisodes(){
+  let migrated=0;
+  items.forEach(i=>{
+    if(!i.episodes){
+      i.episodes="";
+      migrated++;
+    }
+  });
+  if(migrated>0){
+    save();
+    console.log("📺 Episodios inicializados:", migrated);
+  }
+}
+migrateEpisodes();
+function migrateSeasons(){
+  let migrated=0;
+  items.forEach(i=>{
+    if(!i.seasons){
+      i.seasons=null;
+      migrated++;
+    }
+  });
+  if(migrated>0){
+    save();
+    console.log("📺 Temporadas inicializadas:", migrated);
+  }
+}
+migrateSeasons();
+function migrateAdded(){
+  let migrated=0;
+  items.forEach(i=>{if(!i.a){i.a=0;migrated++}});
+  if(migrated>0){save();console.log("🕐 Fechas de añadido inicializadas:",migrated)}
+}
+migrateAdded();
+render();
+idbOpen().then(async db=>{
+  coverDb=db;await idbLoadAll();
+  for(const k in coverCache){try{coverDb.transaction("covers","readwrite").objectStore("covers").put(coverCache[k],k)}catch(e){}}
+  swapCachedCovers();
+  console.log("🖼️ Portadas en caché:",Object.keys(coverCache).length);
+});
+</script>
+</body>
+</html>
