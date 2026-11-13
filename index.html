@@ -585,6 +585,11 @@ function openForm(id){
 $("fab").onclick=()=>openForm(null);
 let swX=0,swY=0,lastSwipe=0,swipeArmed=false,swiping=false;
 const tabsEl=()=>$("tabs");
+const paintTab=(el,w)=>{
+  el.style.background=w>=0.999?"":`color-mix(in srgb,var(--ac) ${Math.round(w*100)}%,var(--card))`;
+  el.style.borderColor=w>0.5?"var(--ac)":"var(--bd)";
+  el.style.color=w>0.5?"var(--ac-ink)":"var(--tx)";
+};
 document.addEventListener("touchstart",e=>{
   swipeArmed=!e.target.closest(".ov,.lb,.search-overlay,input,textarea,select");
   if(swipeArmed){swX=e.touches[0].clientX;swY=e.touches[0].clientY;lastSwipe=0;swiping=false}
@@ -597,26 +602,32 @@ document.addEventListener("touchmove",e=>{
     tabsEl().style.transition="none";
   }
   if(swiping){
-    const px=Math.max(-28,Math.min(28,dx*0.22));
-    tabsEl().style.transform=`translateX(${px}px)`;
+    const t=tabsEl();
+    t.style.transform=`translateX(${Math.max(-28,Math.min(28,dx*0.22))}px)`;
+    const ai=STS.indexOf(st),ti=ai+(dx<0?1:-1);
+    const p=ti>=0&&ti<STS.length?Math.min(1,Math.abs(dx)/100):0;
+    const tabs=t.children;
+    if(tabs[ai])paintTab(tabs[ai],1-p);
+    if(tabs[ti]&&p>0)paintTab(tabs[ti],p);
   }
 },{passive:true});
 document.addEventListener("touchend",e=>{
   if(!swipeArmed)return;
   swipeArmed=false;
   const dx=e.changedTouches[0].clientX-swX,dy=e.changedTouches[0].clientY-swY;
-  const commit=Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5;
   const dir=dx<0?1:-1;
+  const ai=STS.indexOf(st),ni=ai+dir;
+  const commit=Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5&&ni>=0&&ni<STS.length;
   if(swiping){
     swiping=false;
     const t=tabsEl();
     t.style.transition="";
     t.style.transform="";
+    t.querySelectorAll(".tab").forEach(c=>c.removeAttribute("style"));
   }
   if(commit){
     lastSwipe=Date.now();
-    const i=STS.indexOf(st);
-    st=STS[(i+dir+STS.length)%STS.length];
+    st=STS[ni];
     render();
   }
 },{passive:true});
