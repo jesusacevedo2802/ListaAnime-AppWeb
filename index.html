@@ -44,7 +44,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac);box-
 .chips{display:flex;gap:5px;overflow-x:auto;padding-bottom:3px;margin-bottom:2px; padding-top: 5px;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;cursor:grab}
 .chips::-webkit-scrollbar{display:none}
 .chips:active{cursor:grabbing}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:20px;transition:opacity .3s ease,transform .3s ease}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:20px;transition:opacity .3s ease,transform .3s ease;touch-action:pan-y}
 @media(min-width:520px){.grid{grid-template-columns:repeat(3,1fr)}}
 .it{background:var(--card);border:1px solid var(--bd);border-radius:14px;overflow:hidden;cursor:pointer;transition:all .25s ease}
 .it:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(0,0,0,.1);border-color:var(--ac)}
@@ -98,6 +98,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac);box-
 #ovForm #fDesc{flex:0 1 auto}
 #ovForm .sheet>.row:last-child{margin-top:6px}
 .ov.show .sheet{transform:translateY(0)}
+#ovConfirm{z-index:300}
 .sheet h2{margin:0 0 8px;font-size:18px}
 label{font-size:12px;color:var(--mu);display:block;margin-top:10px}
 .prev{width:90px;aspect-ratio:2/3;border-radius:10px;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;color:#fff;font-size:32px;font-weight:700;flex:none;cursor:zoom-in}
@@ -139,43 +140,57 @@ textarea{min-height:140px}
       <h1>🎌 Mi Lista Anime</h1>
       <div class="sub" id="count"></div>
     </div>
+    <button class="search-btn" id="toolsToggle" aria-label="Herramientas">⚙️</button>
     <button class="search-btn" id="searchToggle" aria-label="Buscar">🔍</button>
   </div>
   <div class="tabs" id="tabs"></div>
   <div class="chips" id="chips"></div>
 </div>
 <div class="grid" id="grid"></div>
-<div class="row" style="margin-top:20px">
-  <button class="btn" id="bBulk" style="flex:1">📝 Importar lista</button>
-  <button class="btn" id="bExp" style="flex:1">⬇️ Exportar</button>
-</div>
-<div class="sortbar">
-  <select id="themeSel" class="sortsel">
-    <option value="dark">🌙 Oscuro</option>
-    <option value="ocean">🌊 Océano</option>
-    <option value="ember">🔥 Brasa</option>
-    <option value="forest">🌲 Bosque</option>
-    <option value="mono">⚫ Mono</option>
-    <option value="day">🔷 Día</option>
-    <option value="cream">🍂 Crema</option>
-    <option value="mint">🌿 Menta</option>
-  </select>
-  <select id="sortSel" class="sortsel">
-    <option value="az">⇅ Nombre A-Z</option>
-    <option value="za">⇅ Nombre Z-A</option>
-    <option value="new">🆕 Más recientes</option>
-    <option value="old">📅 Más antiguos</option>
-  </select>
-</div>
-<div class="row">
-  <button class="btn" id="bCovers" style="flex:1">🖼️ Buscar portadas para todos</button>
-  <button class="btn dng" id="bCancelBulk" style="display:none">✕</button>
-</div>
-<label style="display:flex;align-items:center;gap:6px;margin:2px 0 0;font-size:12px;color:var(--mu);cursor:pointer">
-  <input type="checkbox" id="chkMissing" style="width:auto"> Solo completar faltantes
-</label>
-<div class="msg" id="aMsg"></div>
 <button class="fab" id="fab" aria-label="Añadir"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+
+<div class="ov" id="ovConfirm"><div class="sheet" style="max-width:380px">
+  <div class="sub" id="cfMsg" style="text-align:center;padding:10px 4px;font-size:14px"></div>
+  <div class="row">
+    <button class="btn soft" id="cfNo" style="flex:1">Cancelar</button>
+    <button class="btn pri" id="cfYes" style="flex:1">Aceptar</button>
+  </div>
+</div></div>
+
+<div class="ov" id="ovTools"><div class="sheet">
+  <h2>⚙️ Herramientas</h2>
+  <div class="sortbar" style="justify-content:flex-start;margin:0">
+    <select id="themeSel" class="sortsel">
+      <option value="dark">🌙 Oscuro</option>
+      <option value="ocean">🌊 Océano</option>
+      <option value="ember">🔥 Brasa</option>
+      <option value="forest">🌲 Bosque</option>
+      <option value="mono">⚫ Mono</option>
+      <option value="day">🔷 Día</option>
+      <option value="cream">🍂 Crema</option>
+      <option value="mint">🌿 Menta</option>
+    </select>
+    <select id="sortSel" class="sortsel">
+      <option value="az">⇅ Nombre A-Z</option>
+      <option value="za">⇅ Nombre Z-A</option>
+      <option value="new">🆕 Más recientes</option>
+      <option value="old">📅 Más antiguos</option>
+    </select>
+  </div>
+  <div class="row" style="margin-top:14px">
+    <button class="btn" id="bBulk" style="flex:1">📝 Importar lista</button>
+    <button class="btn" id="bExp" style="flex:1">⬇️ Exportar</button>
+  </div>
+  <div class="row">
+    <button class="btn" id="bCovers" style="flex:1">🖼️ Buscar portadas para todos</button>
+    <button class="btn dng" id="bCancelBulk" style="display:none">✕</button>
+  </div>
+  <label style="display:flex;align-items:center;gap:6px;margin:2px 0 0;font-size:12px;color:var(--mu);cursor:pointer">
+    <input type="checkbox" id="chkMissing" style="width:auto"> Solo completar faltantes
+  </label>
+  <div class="msg" id="aMsg"></div>
+  <div class="row"><button class="btn soft" data-close="ovTools" style="flex:1">Cerrar</button></div>
+</div></div>
 
 <div class="ov" id="ovForm"><div class="sheet">
   <h2 id="fTitle">Nuevo anime</h2>
@@ -202,6 +217,7 @@ textarea{min-height:140px}
     <div class="tab" data-st="Viendo">Viendo</div>
   </div>
   <input type="hidden" id="fSt" value="Visto">
+  <div id="epInfo" style="display:none;margin-top:8px;font-size:12px;color:var(--mu)"></div>
   <div class="row">
     <button class="btn dng" id="bDel" style="display:none">Borrar</button>
     <button class="btn soft" id="bCancel" style="flex:1">Cancelar</button>
@@ -238,8 +254,9 @@ const STS=["Visto","Viendo"];
 const GMAP={Action:"Acción",Adventure:"Aventura",Comedy:"Comedia",Drama:"Drama",Fantasy:"Fantasía",Romance:"Romance","Sci-Fi":"Ciencia ficción",Horror:"Terror","Slice of Life":"Slice of life",Sports:"Deportes",Mystery:"Misterio",Supernatural:"Fantasía",Thriller:"Misterio","Psychological":"Drama","Mecha":"Ciencia ficción",Music:"Romance",Isekai:"Isekai","Science Fiction":"Ciencia ficción","School":"Slice of life","Slice of Life":"Slice of life","Suspense":"Misterio","Super Power":"Acción","Seinen":"Drama","Shoujo":"Romance","Shounen":"Acción","Kids":"Aventura"};
 const $=id=>document.getElementById(id);
 let items=[],st="Visto",cat="Todas",editId=null,cover=null,coverManual=false,episodesFound=null,categoriesFound=null,seasonsFound=null,selSeasonId=null,sortMode="az",bulkCancel=false;
+let airingFound=false,lastAirFound=false;
 try{items=JSON.parse(localStorage.getItem("anime-list")||"[]")}catch(e){}
-const save=()=>{try{localStorage.setItem("anime-list",JSON.stringify(items))}catch(e){alert("No se pudo guardar (almacenamiento lleno).")}
+const save=()=>{try{localStorage.setItem("anime-list",JSON.stringify(items))}catch(e){appAlert("No se pudo guardar (almacenamiento lleno).")}
   items.forEach(i=>{if(i.cv)cacheCover(i.cv)})};
 const hue=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return h};
 const bg=(t,c)=>`background-image:${c?`url(${c}),`:""}linear-gradient(160deg,hsl(${hue(t)},65%,48%),hsl(${(hue(t)+50)%360},70%,30%))`;
@@ -290,12 +307,12 @@ function render(animate=true){
     grid.style.opacity="0";
     grid.style.transform="translateY(10px)";
     setTimeout(()=>{
-      grid.innerHTML=list.length?list.map(i=>`<div class="it" data-id="${i.id}"><div class="cv" style="${bg(i.t,null)};position:relative">${cvHtml(i)}${mainSeasonCount(i)>1?`<span class="seasons">${mainSeasonCount(i)} temp</span>`:i.episodes?`<span class="episodes">${i.episodes==1?"película":i.episodes+" ep"}</span>`:""}</div><div class="meta"><div class="t">${esc(i.t)}</div><div class="c">${(i.cats?i.cats.join(", "):i.cat)}</div></div></div>`).join(""):`<div class="empty" style="grid-column:1/-1">Nada por aquí todavía.<br>Pulsa + para añadir.</div>`;
+      grid.innerHTML=list.length?list.map(i=>`<div class="it" data-id="${i.id}"><div class="cv" style="${bg(i.t,null)};position:relative">${cvHtml(i)}${cardBadges(i)}</div><div class="meta"><div class="t">${esc(i.t)}</div><div class="c">${(i.cats?i.cats.join(", "):i.cat)}</div></div></div>`).join(""):`<div class="empty" style="grid-column:1/-1">Nada por aquí todavía.<br>Pulsa + para añadir.</div>`;
       grid.style.opacity="1";
       grid.style.transform="translateY(0)";
     },150);
   }else{
-    grid.innerHTML=list.length?list.map(i=>`<div class="it" data-id="${i.id}"><div class="cv" style="${bg(i.t,null)};position:relative">${cvHtml(i)}${mainSeasonCount(i)>1?`<span class="seasons">${mainSeasonCount(i)} temp</span>`:i.episodes?`<span class="episodes">${i.episodes==1?"película":i.episodes+" ep"}</span>`:""}</div><div class="meta"><div class="t">${esc(i.t)}</div><div class="c">${(i.cats?i.cats.join(", "):i.cat)}</div></div></div>`).join(""):`<div class="empty" style="grid-column:1/-1">Nada por aquí todavía.<br>Pulsa + para añadir.</div>`;
+    grid.innerHTML=list.length?list.map(i=>`<div class="it" data-id="${i.id}"><div class="cv" style="${bg(i.t,null)};position:relative">${cvHtml(i)}${cardBadges(i)}</div><div class="meta"><div class="t">${esc(i.t)}</div><div class="c">${(i.cats?i.cats.join(", "):i.cat)}</div></div></div>`).join(""):`<div class="empty" style="grid-column:1/-1">Nada por aquí todavía.<br>Pulsa + para añadir.</div>`;
   }
 }
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -317,12 +334,17 @@ function mainSeasonCount(i){
     return !(m&&names.has(m[1].trim()));
   }).length;
 }
+function cardBadges(i){
+  if(mainSeasonCount(i)>1)return `<span class="seasons">${mainSeasonCount(i)} temp</span>`;
+  if(i.air)return `<span class="episodes">En emisión</span>`;
+  return i.episodes?`<span class="episodes">${i.episodes==1?"película":i.episodes+" ep"}</span>`:"";
+}
 function seasonsInfoHTML(seasons){
   const mains=seasons.filter(isMainSeason);
   const extras=seasons.filter(s=>!isMainSeason(s));
   const LIMIT=6;
-  const item=s=>`<li class="seas-item" data-mal="${s.mal_id||""}" data-name="${esc(s.name)}" title="Click para ver la info de esta parte">${esc(s.name)}${s.episodes&&s.episodes!=="0"?" - "+s.episodes+" episodios":""}</li>`;
-  const extraItem=s=>`<li class="seas-item" data-mal="${s.mal_id||""}" data-name="${esc(s.name)}" title="Click para ver la info de esta parte">${esc(s.name)} - ${seasonTypeLabel(s.type)}${s.type!=="Movie"&&s.episodes&&s.episodes!=="0"?", "+s.episodes+" ep":""}</li>`;
+  const item=s=>`<li class="seas-item" data-mal="${s.mal_id||""}" data-name="${esc(s.name)}" title="Click para ver la info de esta parte">${esc(s.name)}${s.episodes&&s.episodes!=="0"?" - "+s.episodes+" episodios":s.air?" - En emisión":""}</li>`;
+  const extraItem=s=>`<li class="seas-item" data-mal="${s.mal_id||""}" data-name="${esc(s.name)}" title="Click para ver la info de esta parte">${esc(s.name)} - ${seasonTypeLabel(s.type)}${s.type!=="Movie"&&s.episodes&&s.episodes!=="0"?", "+s.episodes+" ep":""}${s.air?" · En emisión":""}</li>`;
   const mainsVis=mains.slice(0,LIMIT),mainsHid=mains.slice(LIMIT);
   const extrasSlots=Math.max(0,LIMIT-mainsVis.length);
   const extrasVis=extras.slice(0,extrasSlots),extrasHid=extras.slice(extrasSlots);
@@ -366,6 +388,29 @@ const close=id=>{
   setTimeout(()=>el.style.display="none",300);
 };
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>close(b.dataset.close));
+document.querySelectorAll(".ov").forEach(ov=>ov.addEventListener("click",e=>{if(e.target===ov)close(ov.id)}));
+function appConfirm(msg){
+  return new Promise(res=>{
+    $("cfMsg").textContent=msg;
+    $("cfNo").style.display="";
+    $("cfYes").textContent="Aceptar";
+    open("ovConfirm");
+    const done=v=>{close("ovConfirm");res(v)};
+    $("cfYes").onclick=()=>done(true);
+    $("cfNo").onclick=()=>done(false);
+    $("ovConfirm").onclick=e=>{if(e.target===$("ovConfirm"))done(false)};
+  });
+}
+function appAlert(msg){
+  return new Promise(res=>{
+    $("cfMsg").textContent=msg;
+    $("cfNo").style.display="none";
+    $("cfYes").textContent="Aceptar";
+    open("ovConfirm");
+    $("cfYes").onclick=()=>{close("ovConfirm");res()};
+    $("ovConfirm").onclick=e=>{if(e.target===$("ovConfirm")){close("ovConfirm");res()}};
+  });
+}
 $("fStTabs").onclick=e=>{
   const b=e.target.closest(".tab");if(!b)return;
   $("fSt").value=b.dataset.st;
@@ -399,6 +444,7 @@ $("searchClose").onclick=()=>{
   $("searchOverlay").classList.remove("show");
   if($("q").value){$("q").value="";render()}
 };
+$("toolsToggle").onclick=()=>open("ovTools");
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape")$("searchOverlay").classList.remove("show");
 });
@@ -436,7 +482,7 @@ $("seasonsInfo").addEventListener("click",async e=>{
     const tr=syn?await translateToSpanish(syn):null;
     const cats=mapGenresToCategories((info.genres||[]).map(g=>g.name));
     selSeasonId=malId;
-    if(img&&(!(cover&&coverManual)||confirm("Ya tienes una portada personal. ¿Reemplazarla con la de esta temporada?"))){
+    if(img&&(!(cover&&coverManual)||await appConfirm("Ya tienes una portada personal. ¿Reemplazarla con la de esta temporada?"))){
       cover=img;coverManual=false;prev();
     }
     if(tr)$("fDesc").value=tr;
@@ -503,6 +549,13 @@ $("fName").oninput=e=>{
 document.addEventListener("click",e=>{
   if(!e.target.closest(".autocomplete"))$("suggestions").style.display="none";
 });
+function syncEpUI(){
+  const el=$("epInfo"),tot=parseInt(episodesFound)||0;
+  if(tot>1){el.style.display="block";el.textContent="📺 "+tot+" episodios"+(airingFound?" · En emisión":"")}
+  else if(airingFound){el.style.display="block";el.textContent="📺 En emisión"}
+  else if(episodesFound==="1"||episodesFound===1){el.style.display="block";el.textContent="🎬 Película"}
+  else{el.style.display="none";el.textContent=""}
+}
 function openForm(id){
   editId=id;const i=items.find(x=>x.id===id);
   $("fTitle").textContent=i?"Editar anime":"Nuevo anime";
@@ -510,10 +563,11 @@ function openForm(id){
   $("fStTabs").querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.st===$("fSt").value));
   $("fDesc").value=i?i.desc||"":"";
   cover=i?i.cv:null;coverManual=i?i.cvManual||false:false;$("bDel").style.display=i?"":"none";$("fMsg").textContent="";
-  episodesFound=null;categoriesFound=null;seasonsFound=null;
+  episodesFound=null;categoriesFound=null;seasonsFound=null;airingFound=false;lastAirFound=false;
   if(i&&i.episodes)episodesFound=i.episodes;
   if(i&&i.cats)categoriesFound=i.cats;
   if(i&&i.seasons)seasonsFound=i.seasons;
+  if(i&&i.air)airingFound=true;
   selSeasonId=i?(i.sel||null):null;
   const seasonsInfo=$("seasonsInfo");
   const isSingleMovie=i&&(i.episodes==="1"||i.episodes===1);
@@ -525,12 +579,25 @@ function openForm(id){
     seasonsInfo.innerHTML="";
   }
   markSeasonSel();
+  syncEpUI();
   prev();open("ovForm");
 }
 $("fab").onclick=()=>openForm(null);
-$("grid").onclick=e=>{const c=e.target.closest(".it");if(c)openForm(c.dataset.id)};
+let swX=0,swY=0,lastSwipe=0;
+const _gridEl=$("grid");
+_gridEl.addEventListener("touchstart",e=>{swX=e.touches[0].clientX;swY=e.touches[0].clientY;lastSwipe=0},{passive:true});
+_gridEl.addEventListener("touchend",e=>{
+  const dx=e.changedTouches[0].clientX-swX,dy=e.changedTouches[0].clientY-swY;
+  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){
+    lastSwipe=Date.now();
+    const i=STS.indexOf(st);
+    st=STS[(i+(dx<0?1:-1)+STS.length)%STS.length];
+    render();
+  }
+},{passive:true});
+$("grid").onclick=e=>{if(Date.now()-lastSwipe<500)return;const c=e.target.closest(".it");if(c)openForm(c.dataset.id)};
 $("bCancel").onclick=()=>close("ovForm");
-$("bDel").onclick=()=>{if(confirm("¿Borrar este anime?")){items=items.filter(i=>i.id!==editId);save();close("ovForm");render()}};
+$("bDel").onclick=async()=>{if(await appConfirm("¿Borrar este anime?")){items=items.filter(i=>i.id!==editId);save();close("ovForm");render()}};
 
 const ABBREVIATIONS={
   "oregairu":"Yahari Ore no Seishun Love Comedy wa Machigatteiru",
@@ -820,6 +887,7 @@ async function findDescription(title){
 }
 
 async function findEpisodes(title){
+  lastAirFound=false;
   try{
     const normalized=normalizeTitle(title);
     const expanded=ABBREVIATIONS[normalized]||title;
@@ -840,8 +908,9 @@ async function findEpisodes(title){
     }
     if(!best||bestScore<0.3)return null;
     const episodes=best.episodes||0;
-    console.log("📺 Episodios:", title, "->", best.title, "| Cantidad:", episodes);
-    return episodes.toString();
+    lastAirFound=best.status==="Currently Airing";
+    console.log("📺 Episodios:", title, "->", best.title, "| Cantidad:", episodes, "| Estado:", best.status||"?");
+    return episodes>0?episodes.toString():null;
   }catch(e){
     console.error("❌ Error buscando episodios:", title, e.message);
     return null;
@@ -972,24 +1041,25 @@ async function findSeasons(title){
                   console.log("    ⏭️ Serie fuera de franquicia:", entry.name);
                   continue;
                 }
-                if(seasonInfo&&seasonInfo.episodes){
+                if(seasonInfo&&(seasonInfo.episodes||seasonInfo.status==="Currently Airing")){
                   typeByMalId.set(entry.mal_id,seasonInfo.type||"");
                   const isPrequel=rel.relation==="Prequel";
                   const parentType=typeByMalId.get(currentMalId)||"";
                   const durStr=seasonInfo.duration||"";
                   const durMinMatch=durStr.match(/(\d+)\s*min/i);
                   const durMin=/\d+\s*hr/i.test(durStr)?60:(durMinMatch?parseInt(durMinMatch[1]):null);
-                  const isChibi=/\b(mini|chibi|spin[- ]?off|short anime)\b/i.test((entry.name||"")+" "+(seasonInfo.title_english||""))||(durMin!==null&&durMin<10)||(durMin===null&&seasonInfo.episodes<=5);
-                  const isMain=!isPrequel&&!isChibi&&franchiseMatch&&seasonInfo.episodes>1&&(seasonInfo.type==="TV"||(seasonInfo.type==="ONA"&&(origType==="ONA"||(rel.relation==="Sequel"&&(parentType==="TV"||parentType==="ONA")))));
+                  const isChibi=/\b(mini|chibi|spin[- ]?off|short anime)\b/i.test((entry.name||"")+" "+(seasonInfo.title_english||""))||(durMin!==null&&durMin<10)||(durMin===null&&seasonInfo.episodes!=null&&seasonInfo.episodes<=5);
+                  const isMain=!isPrequel&&!isChibi&&franchiseMatch&&(!seasonInfo.episodes||seasonInfo.episodes>1)&&(seasonInfo.type==="TV"||(seasonInfo.type==="ONA"&&(origType==="ONA"||(rel.relation==="Sequel"&&(parentType==="TV"||parentType==="ONA")))));
                   const seasonObj={
                     name:entry.name||seasonInfo.title_english||seasonInfo.title,
-                    episodes:seasonInfo.episodes.toString(),
+                    episodes:seasonInfo.episodes?seasonInfo.episodes.toString():"",
                     mal_id:entry.mal_id,
                     relation:rel.relation,
                     type:seasonInfo.type||"",
-                    main:isMain
+                    main:isMain,
+                    air:seasonInfo.status==="Currently Airing"
                   };
-                  const isAltVersion=(rel.relation==="Alternative"||rel.relation==="Alternative Version")&&seasonInfo.type==="TV"&&seasonInfo.episodes>1;
+                  const isAltVersion=(rel.relation==="Alternative"||rel.relation==="Alternative Version")&&seasonInfo.type==="TV"&&(!seasonInfo.episodes||seasonInfo.episodes>1);
                   if(isAltVersion){
                     const qsim=Math.max(...candNames.map(c=>similarity(expanded,c)));
                     altPool.push({season:seasonObj,score:seasonInfo.score||0,qsim});
@@ -1117,8 +1187,8 @@ async function findCoverJikan(title){
     if(malId){
       seasons=await findSeasons(title);
     }
-    console.log("🖼️ Portada Tenrai:", title, "->", best.title, "| Categorías:", cats.join(", "), "| Episodios:", episodes, "| Temporadas:", seasons?seasons.length:"N/A");
-    return {cv:imgUrl,cats,name:best.title_english||best.title,episodes,seasons};
+    console.log("🖼️ Portada Tenrai:", title, "->", best.title, "| Categorías:", cats.join(", "), "| Episodios:", episodes, "| Temporadas:", seasons?seasons.length:"N/A", "| Estado:", best.status||"?");
+    return {cv:imgUrl,cats,name:best.title_english||best.title,episodes:episodes>0?episodes.toString():null,seasons,air:best.status==="Currently Airing"};
   }catch(e){return null}
 }
 
@@ -1153,18 +1223,19 @@ async function findCoverKitsu(title){
 }
 
 async function findCover(title){
+  lastAirFound=false;
   const normalized=normalizeTitle(title);
   const expanded=ABBREVIATIONS[normalized]||title;
   const searches=[expanded,expanded+" anime",expanded.replace(/ /g,""),title,title+" anime",title.replace(/ /g,"")];
   for(const s of searches){
     let r=await findCoverJikan(s);
-    if(r&&r.cv)return r;
+    if(r&&r.cv){lastAirFound=!!r.air;return r}
     await new Promise(r=>setTimeout(r,500));
     r=await findCoverAniList(s);
-    if(r&&r.cv)return r;
+    if(r&&r.cv){lastAirFound=!!r.air;return r}
     await new Promise(r=>setTimeout(r,500));
     r=await findCoverKitsu(s);
-    if(r&&r.cv)return r;
+    if(r&&r.cv){lastAirFound=!!r.air;return r}
     await new Promise(r=>setTimeout(r,500));
   }
   return null;
@@ -1173,10 +1244,10 @@ function shrink(src){return new Promise(res=>{const im=new Image();im.onload=()=
 $("bFind").onclick=async()=>{
   const t=$("fName").value.trim();if(!t)return $("fMsg").textContent="Escribe primero el nombre.";
   if(!navigator.onLine){$("fMsg").textContent="⚠️ Sin conexión a internet.";console.log("⚠️ Sin conexión, búsqueda omitida");return}
-  if(cover&&coverManual){if(!confirm("Ya tienes una portada personal. ¿Quieres reemplazarla con la búsqueda automática?"))return}
+  if(cover&&coverManual){if(!await appConfirm("Ya tienes una portada personal. ¿Quieres reemplazarla con la búsqueda automática?"))return}
   console.log("🔍 Búsqueda manual iniciada:", t);
   $("fMsg").textContent="Buscando datos…";
-  episodesFound=null;categoriesFound=null;seasonsFound=null;
+  episodesFound=null;categoriesFound=null;seasonsFound=null;airingFound=false;
   let foundAny=false;
   const r=await findCover(t);
   if(r&&r.cv){
@@ -1236,6 +1307,8 @@ $("bFind").onclick=async()=>{
   }else{
     $("fMsg").textContent="No se encontró información para este anime.";
   }
+  airingFound=lastAirFound;
+  syncEpUI();
 };
 $("bUp").onclick=()=>$("file").click();
 $("file").onchange=e=>{
@@ -1259,75 +1332,99 @@ function isValidAnimeName(name){
   return true;
 }
 
+let lastBulkRender=0,bulkRenderTimer=null;
+function scheduleBulkRender(){
+  const now=Date.now();
+  if(now-lastBulkRender>1500){lastBulkRender=now;render(false)}
+  else if(!bulkRenderTimer){bulkRenderTimer=setTimeout(()=>{bulkRenderTimer=null;lastBulkRender=Date.now();render(false)},1500-(now-lastBulkRender))}
+}
+let wakeLock=null,bulkRunning=false;
+document.addEventListener("visibilitychange",()=>{
+  if(!document.hidden&&bulkRunning&&!wakeLock&&navigator.wakeLock)navigator.wakeLock.request("screen").then(w=>wakeLock=w).catch(()=>{});
+});
 async function fetchAllCovers(){
   const todo=items;
   if(!todo.length){$("aMsg").textContent="No hay animes.";return}
   if(!navigator.onLine){$("aMsg").textContent="⚠️ Sin conexión a internet. La búsqueda masiva se canceló.";console.log("⚠️ Sin conexión, búsqueda masiva omitida");return}
   bulkCancel=false;
+  bulkRunning=true;
+  try{wakeLock=await navigator.wakeLock.request("screen")}catch(e){}
   $("bCancelBulk").style.display="";
   const onlyMissing=$("chkMissing").checked;
   const complete=a=>a.cv&&a.desc&&a.episodes&&(a.seasons&&a.seasons.length||a.episodes==="1"||a.episodes===1);
-  let ok=0,skipped=0,doneSkip=0,descOk=0,epOk=0,seasonOk=0,errors=0;
-  for(let k=0;k<todo.length;k++){
-    if(bulkCancel)break;
-    const a=todo[k];
-    if(!isValidAnimeName(a.t)){
-      skipped++;
-      continue;
+  let ok=0,skipped=0,doneSkip=0,descOk=0,epOk=0,seasonOk=0,errors=0,done=0,errStreak=0,next=0;
+  const updateMsg=a=>{$("aMsg").textContent=`Avance ${done}/${todo.length}${a?" · "+a.t:""}`};
+  const worker=async()=>{
+    while(!bulkCancel){
+      const k=next++;
+      if(k>=todo.length)break;
+      const a=todo[k];
+      if(!isValidAnimeName(a.t)){skipped++;done++;updateMsg();continue}
+      if(onlyMissing&&complete(a)){doneSkip++;done++;updateMsg();continue}
+      updateMsg(a);
+      try{
+        const r=await findCover(a.t);
+        if(r){
+          if(r.cv){
+            a.cv=r.cv;
+            a.cvManual=false;
+            ok++;
+          }
+          if(r.cats&&r.cats.length>0){
+            a.cats=r.cats;
+          }
+          if(r.episodes){
+            a.episodes=r.episodes;
+            epOk++;
+          }
+          if(r.seasons){
+            a.seasons=r.seasons;
+            seasonOk++;
+          }
+          if(r.air!==undefined)a.air=!!r.air;
+          save();scheduleBulkRender();
+        }
+        const desc=await findDescription(a.t);
+        if(desc){
+          a.desc=desc;
+          descOk++;
+          console.log("📝 Descripción actualizada:", a.t);
+          save();scheduleBulkRender();
+        }
+        if(!a.episodes){
+          const episodes=await findEpisodes(a.t);
+          if(episodes){
+            a.episodes=episodes;
+            a.air=lastAirFound;
+            epOk++;
+            save();scheduleBulkRender();
+          }
+        }
+        if(!a.seasons){
+          const seasons=await findSeasons(a.t);
+          if(seasons){
+            a.seasons=seasons;
+            seasonOk++;
+            save();scheduleBulkRender();
+          }
+        }
+        errStreak=0;
+      }catch(e){
+        console.error("Error buscando",a.t,":",e);
+        errors++;
+        errStreak++;
+      }
+      done++;
+      updateMsg();
+      await new Promise(r=>setTimeout(r,errStreak>2?5000:700));
     }
-    if(onlyMissing&&complete(a)){doneSkip++;continue}
-    const hadCover=!!a.cv;
-    $("aMsg").textContent=`Buscando ${k+1}/${todo.length}: ${a.t}…`;
-    try{
-      const r=await findCover(a.t);
-      if(r){
-        if(r.cv){
-          a.cv=r.cv;
-          a.cvManual=false;
-          ok++;
-        }
-        if(r.cats&&r.cats.length>0){
-          a.cats=r.cats;
-        }
-        if(r.episodes){
-          a.episodes=r.episodes;
-          epOk++;
-        }
-        if(r.seasons){
-          a.seasons=r.seasons;
-          seasonOk++;
-        }
-        save();render(false);
-      }
-      const desc=await findDescription(a.t);
-      if(desc){
-        a.desc=desc;
-        descOk++;
-        console.log("📝 Descripción actualizada:", a.t);
-        save();render(false);
-      }
-      if(!a.episodes){
-        const episodes=await findEpisodes(a.t);
-        if(episodes){
-          a.episodes=episodes;
-          epOk++;
-          save();render(false);
-        }
-      }
-      if(!a.seasons){
-        const seasons=await findSeasons(a.t);
-        if(seasons){
-          a.seasons=seasons;
-          seasonOk++;
-          save();render(false);
-        }
-      }
-    }catch(e){
-      console.error("Error buscando",a.t,":",e);
-      errors++;
-    }
-    await new Promise(r=>setTimeout(r,2000));
-  }
+  };
+  await Promise.all([worker(),worker()]);
+  if(bulkRenderTimer){clearTimeout(bulkRenderTimer);bulkRenderTimer=null}
+  render(false);
+  bulkRunning=false;
+  try{await wakeLock?.release()}catch(e){}
+  wakeLock=null;
   $("bCancelBulk").style.display="none";
   $("aMsg").textContent=`${bulkCancel?"Cancelado. ":""}Listo: ${ok} portadas, ${descOk} descripciones, ${epOk} episodios y ${seasonOk} con temporadas de ${todo.length-skipped} animes válidos.${errors?" ("+errors+" errores).":""}${skipped?" ("+skipped+" nombres inválidos saltados).":""}${doneSkip?" ("+doneSkip+" ya completos saltados).":""}`;
 }
@@ -1364,7 +1461,8 @@ $("bSave").onclick=async()=>{
       console.log("✅ Temporadas automáticas encontradas:", s.length);
     }
   }
-  const o={t,cats,st:$("fSt").value,cv:cover,cvManual:coverManual,desc,episodes,seasons,sel:selSeasonId};
+  if(!editId)airingFound=lastAirFound;
+  const o={t,cats,st:$("fSt").value,cv:cover,cvManual:coverManual,desc,episodes,seasons,sel:selSeasonId,air:airingFound||false};
   if(editId){
     console.log("💾 Guardando cambios de anime:", t);
     console.log("   - Categorías:", cats.join(", "));
@@ -1489,6 +1587,7 @@ $("bGo").onclick=async()=>{
       a.cv=r.cv;a.cvManual=false;
       if(r.cats&&r.cats.length>0)a.cats=r.cats;
       if(r.episodes){a.episodes=r.episodes;epOk++}
+      if(r.air!==undefined)a.air=!!r.air;
       if(r.seasons){a.seasons=r.seasons;seasonOk++}
       ok++;save();render()
     }
