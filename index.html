@@ -232,6 +232,7 @@ textarea{min-height:140px}
   <input type="file" id="docFile" accept=".docx,.xlsx,.txt" hidden>
   <textarea id="bulkTx" placeholder="Naruto&#10;Death Note&#10;One Piece"></textarea>
   <div class="msg" id="bMsg"></div>
+  <button class="btn dng" id="bCancelImp" style="display:none;margin-top:6px">✕ Cancelar</button>
   <div class="row"><button class="btn" data-close="ovBulk" style="flex:1">Cerrar</button><button class="btn pri" id="bGo" style="flex:1">Añadir todo</button></div>
 </div></div>
 
@@ -1215,7 +1216,7 @@ async function findCoverJikan(title){
       seasons=await findSeasons(title);
     }
     console.log("🖼️ Portada Tenrai:", title, "->", best.title, "| Categorías:", cats.join(", "), "| Episodios:", episodes, "| Temporadas:", seasons?seasons.length:"N/A", "| Estado:", best.status||"?");
-    return {cv:imgUrl,cats,name:best.title_english||best.title,episodes:episodes>0?episodes.toString():null,seasons,air:best.status==="Currently Airing"};
+    return {cv:imgUrl,cats,name:best.title_english||best.title,episodes:episodes>0?episodes.toString():null,seasons,air:best.status==="Currently Airing",synopsis:best.synopsis||""};
   }catch(e){return null}
 }
 
@@ -1373,6 +1374,7 @@ async function fetchAllCovers(){
   const todo=items;
   if(!todo.length){$("aMsg").textContent="No hay animes.";return}
   if(!navigator.onLine){$("aMsg").textContent="⚠️ Sin conexión a internet. La búsqueda masiva se canceló.";console.log("⚠️ Sin conexión, búsqueda masiva omitida");return}
+  if(bulkRunning){$("aMsg").textContent="Ya hay una búsqueda en curso.";return}
   bulkCancel=false;
   bulkRunning=true;
   try{wakeLock=await navigator.wakeLock.request("screen")}catch(e){}
@@ -1392,9 +1394,8 @@ async function fetchAllCovers(){
       try{
         const r=await findCover(a.t);
         if(r){
-          if(r.cv){
+          if(r.cv&&!a.cvManual){
             a.cv=r.cv;
-            a.cvManual=false;
             ok++;
           }
           if(r.cats&&r.cats.length>0){
@@ -1456,7 +1457,7 @@ async function fetchAllCovers(){
   $("aMsg").textContent=`${bulkCancel?"Cancelado. ":""}Listo: ${ok} portadas, ${descOk} descripciones, ${epOk} episodios y ${seasonOk} con temporadas de ${todo.length-skipped} animes válidos.${errors?" ("+errors+" errores).":""}${skipped?" ("+skipped+" nombres inválidos saltados).":""}${doneSkip?" ("+doneSkip+" ya completos saltados).":""}`;
 }
 $("bCovers").onclick=fetchAllCovers;
-$("bCancelBulk").onclick=()=>{bulkCancel=true;$("aMsg").textContent="Cancelando tras el anime actual…"};
+$("bCancelBulk").onclick=()=>{bulkCancel=true;$("aMsg").textContent="Cancelando tras el anime actual…";$("bMsg").textContent="Cancelando tras el anime actual…"};
 $("bSave").onclick=async()=>{
   const t=$("fName").value.trim();if(!t)return $("fMsg").textContent="Falta el nombre.";
   let desc=$("fDesc").value.trim();
@@ -1606,25 +1607,48 @@ $("bGo").onclick=async()=>{
   const ents=parseList($("bulkTx").value);if(!ents.length)return;
   const added=ents.filter(n=>!items.some(i=>i.t.toLowerCase()===n.t.toLowerCase())).map(n=>({id:Date.now()+Math.random().toString(36).slice(2,6),a:Date.now(),t:n.t,cats:n.cats&&n.cats.length>0?n.cats:[],st:n.st,cv:null,cvManual:false}));
   ents.forEach(n=>{const e=items.find(i=>i.t.toLowerCase()===n.t.toLowerCase());if(e&&(!e.cats||e.cats.length===0)&&n.cats&&n.cats.length>0)e.cats=n.cats});items.push(...added);save();st="Visto";render();$("bulkTx").value="";
-  $("bMsg").textContent=added.length+" añadidos. Buscando portadas, episodios y temporadas…";
-  let ok=0,epOk=0,seasonOk=0;
-  for(const a of added){
-    const r=await findCover(a.t);
-    if(r){
-      a.cv=r.cv;a.cvManual=false;
-      if(r.cats&&r.cats.length>0)a.cats=r.cats;
-      if(r.episodes){a.episodes=r.episodes;epOk++}
-      if(r.air!==undefined)a.air=!!r.air;
-      if(r.seasons){a.seasons=r.seasons;seasonOk++}
-      ok++;save();render()
+  if(bulkRunning){$("bMsg").textContent=added.length+" añadidos. Ya hay una búsqueda en curso — se completarán desde ⚙️ → Buscar portadas.";return}
+  bulkCancel=false;
+  bulkRunning=true;
+  try{wakeLock=await navigator.wakeLock.request("screen")}catch(e){}
+  $("bCancelImp").style.display="";
+  $("bMsg").textContent=added.length+" añadidos. Buscando portadas, descripciones, episodios y temporadas…";
+  let ok=0,epOk=0,seasonOk=0,descOk=0,errors=0;
+  for(let k=0;k<added.length;k++){
+    if(bulkCancel)break;
+    const a=added[k];
+    $("bMsg").textContent=`Buscando ${k+1}/${added.length}: ${a.t}…`;
+    try{
+      const r=await findCover(a.t);
+      if(r){
+        if(r.cv){a.cv=r.cv;a.cvManual=false;ok++}
+        if(r.cats&&r.cats.length>0)a.cats=r.cats;
+        if(r.episodes){a.episodes=r.episodes;epOk++}
+        if(r.air!==undefined)a.air=!!r.air;
+        if(r.seasons){a.seasons=r.seasons;seasonOk++}
+      }
+      let desc=null;
+      if(r&&r.synopsis)desc=await translateToSpanish(r.synopsis);
+      if(!desc)desc=await findDescription(a.t);
+      if(desc){a.desc=desc;descOk++}
+      if(!a.episodes){const ep=await findEpisodes(a.t);if(ep){a.episodes=ep;epOk++}}
+      if(!a.seasons){const s=await findSeasons(a.t);if(s){a.seasons=s;seasonOk++}}
+      save();scheduleBulkRender();
+    }catch(e){
+      console.error("Error importando",a.t,":",e);
+      errors++;
     }
-    await new Promise(r=>setTimeout(r,2000))
+    await new Promise(r=>setTimeout(r,1500));
   }
-  $("bMsg").textContent=added.length+" añadidos. Buscando descripciones…";
-  let descOk=0;
-  for(const a of added){const desc=await findDescription(a.t);if(desc){a.desc=desc;descOk++;save();render()}await new Promise(r=>setTimeout(r,2000))}
-  $("bMsg").textContent=`Listo: ${ok} portadas, ${epOk} episodios, ${seasonOk} con temporadas y ${descOk} descripciones encontradas.`;
+  if(bulkRenderTimer){clearTimeout(bulkRenderTimer);bulkRenderTimer=null}
+  render(false);
+  bulkRunning=false;
+  try{await wakeLock?.release()}catch(e){}
+  wakeLock=null;
+  $("bCancelImp").style.display="none";
+  $("bMsg").textContent=`${bulkCancel?"Cancelado. ":""}Listo: ${ok} portadas, ${descOk} descripciones, ${epOk} episodios y ${seasonOk} con temporadas de ${added.length} animes.${errors?" ("+errors+" errores).":""}`;
 };
+$("bCancelImp").onclick=()=>{bulkCancel=true;$("bMsg").textContent="Cancelando tras el anime actual…"};
 
 function txt(){
   const sec=s=>items.filter(i=>i.st===s).sort((a,b)=>a.t.localeCompare(b.t));
