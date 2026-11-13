@@ -45,6 +45,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac);box-
 .chips::-webkit-scrollbar{display:none}
 .chips:active{cursor:grabbing}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:20px;transition:opacity .3s ease,transform .3s ease;touch-action:pan-y}
+.grid.swiping{transition:none!important}
 @media(min-width:520px){.grid{grid-template-columns:repeat(3,1fr)}}
 .it{background:var(--card);border:1px solid var(--bd);border-radius:14px;overflow:hidden;cursor:pointer;transition:all .25s ease}
 .it:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(0,0,0,.1);border-color:var(--ac)}
@@ -583,15 +584,60 @@ function openForm(id){
   prev();open("ovForm");
 }
 $("fab").onclick=()=>openForm(null);
-let swX=0,swY=0,lastSwipe=0;
-const _gridEl=$("grid");
-_gridEl.addEventListener("touchstart",e=>{swX=e.touches[0].clientX;swY=e.touches[0].clientY;lastSwipe=0},{passive:true});
-_gridEl.addEventListener("touchend",e=>{
+let swX=0,swY=0,lastSwipe=0,swipeArmed=false,swiping=false;
+document.addEventListener("touchstart",e=>{
+  swipeArmed=!e.target.closest(".ov.show,.search-overlay.show,input,textarea,select");
+  if(swipeArmed){swX=e.touches[0].clientX;swY=e.touches[0].clientY;lastSwipe=0;swiping=false}
+},{passive:true});
+document.addEventListener("touchmove",e=>{
+  if(!swipeArmed)return;
+  const dx=e.touches[0].clientX-swX,dy=e.touches[0].clientY-swY;
+  if(!swiping&&Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.2){swiping=true;$("grid").classList.add("swiping")}
+  if(swiping){
+    const g=$("grid"),w=g.offsetWidth||360;
+    const px=Math.max(-w,Math.min(w,dx*0.45));
+    g.style.transform=`translateX(${px}px)`;
+    g.style.opacity=String(Math.max(0.35,1-Math.abs(px)/w*0.65));
+  }
+},{passive:true});
+document.addEventListener("touchend",e=>{
+  if(!swipeArmed)return;
+  swipeArmed=false;
+  const g=$("grid"),w=g.offsetWidth||360;
   const dx=e.changedTouches[0].clientX-swX,dy=e.changedTouches[0].clientY-swY;
-  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){
+  const commit=Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5;
+  const dir=dx<0?1:-1;
+  if(swiping){
+    swiping=false;
+    g.classList.remove("swiping");
+    if(commit){
+      lastSwipe=Date.now();
+      const i=STS.indexOf(st);
+      st=STS[(i+dir+STS.length)%STS.length];
+      g.style.transition="transform .18s ease-in,opacity .18s ease-in";
+      g.style.transform=`translateX(${-dir*w*0.35}px)`;
+      g.style.opacity="0";
+      setTimeout(()=>{
+        render(false);
+        g.style.transition="none";
+        g.style.transform=`translateX(${dir*w*0.35}px)`;
+        g.style.opacity="0";
+        void g.offsetWidth;
+        g.style.transition="transform .26s cubic-bezier(.2,.8,.3,1),opacity .24s ease-out";
+        g.style.transform="translateX(0)";
+        g.style.opacity="1";
+        setTimeout(()=>{g.removeAttribute("style")},280);
+      },190);
+    }else{
+      g.style.transform="";
+      g.style.opacity="";
+    }
+    return;
+  }
+  if(commit){
     lastSwipe=Date.now();
     const i=STS.indexOf(st);
-    st=STS[(i+(dx<0?1:-1)+STS.length)%STS.length];
+    st=STS[(i+dir+STS.length)%STS.length];
     render();
   }
 },{passive:true});
