@@ -551,10 +551,8 @@ document.addEventListener("click",e=>{
 });
 function syncEpUI(){
   const el=$("epInfo"),tot=parseInt(episodesFound)||0;
-  if(tot>1){el.style.display="block";el.textContent="📺 "+tot+" episodios"+(airingFound?" · En emisión":"")}
-  else if(airingFound){el.style.display="block";el.textContent="📺 En emisión"}
-  else if(episodesFound==="1"||episodesFound===1){el.style.display="block";el.textContent="🎬 Película"}
-  else{el.style.display="none";el.textContent=""}
+  el.style.display="block";
+  el.textContent=airingFound?(tot>1?"📺 En emisión · "+tot+" episodios":"📺 En emisión"):"";
 }
 function openForm(id){
   editId=id;const i=items.find(x=>x.id===id);
@@ -596,17 +594,13 @@ document.addEventListener("touchstart",e=>{
 },{passive:true});
 document.addEventListener("touchmove",e=>{
   if(!swipeArmed)return;
+  if(document.querySelector(".ov.show,.lb.show,.search-overlay.show"))return;
   const dx=e.touches[0].clientX-swX,dy=e.touches[0].clientY-swY;
-  if(!swiping&&Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.2){
-    swiping=true;
-    tabsEl().style.transition="none";
-  }
+  if(!swiping&&Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.2)swiping=true;
   if(swiping){
-    const t=tabsEl();
-    t.style.transform=`translateX(${Math.max(-28,Math.min(28,dx*0.22))}px)`;
     const ai=STS.indexOf(st),ti=ai+(dx<0?1:-1);
     const p=ti>=0&&ti<STS.length?Math.min(1,Math.abs(dx)/100):0;
-    const tabs=t.children;
+    const tabs=tabsEl().children;
     if(tabs[ai])paintTab(tabs[ai],1-p);
     if(tabs[ti]&&p>0)paintTab(tabs[ti],p);
   }
@@ -614,17 +608,14 @@ document.addEventListener("touchmove",e=>{
 document.addEventListener("touchend",e=>{
   if(!swipeArmed)return;
   swipeArmed=false;
+  swiping=false;
+  const t=tabsEl();
+  t.querySelectorAll(".tab").forEach(c=>c.removeAttribute("style"));
+  if(document.querySelector(".ov.show,.lb.show,.search-overlay.show"))return;
   const dx=e.changedTouches[0].clientX-swX,dy=e.changedTouches[0].clientY-swY;
   const dir=dx<0?1:-1;
   const ai=STS.indexOf(st),ni=ai+dir;
   const commit=Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5&&ni>=0&&ni<STS.length;
-  if(swiping){
-    swiping=false;
-    const t=tabsEl();
-    t.style.transition="";
-    t.style.transform="";
-    t.querySelectorAll(".tab").forEach(c=>c.removeAttribute("style"));
-  }
   if(commit){
     lastSwipe=Date.now();
     st=STS[ni];
@@ -1636,8 +1627,13 @@ $("bGo").onclick=async()=>{
 };
 
 function txt(){
-  const visto=items.filter(i=>i.st==="Visto").sort((a,b)=>a.t.localeCompare(b.t));
-  return "Mi lista de Anime\nVistos ("+visto.length+")\n"+"=".repeat(20)+"\n\n"+visto.map(i=>`- ${i.t}`).join("\n")+"\n";
+  const sec=s=>items.filter(i=>i.st===s).sort((a,b)=>a.t.localeCompare(b.t));
+  const visto=sec("Visto"),viendo=sec("Viendo");
+  let out="Mi lista de Anime\n";
+  if(visto.length)out+="Vistos ("+visto.length+")\n"+"=".repeat(20)+"\n\n"+visto.map(i=>`- ${i.t}`).join("\n")+"\n\n";
+  if(viendo.length)out+="Viendo ("+viendo.length+")\n"+"=".repeat(20)+"\n\n"+viendo.map(i=>`- ${i.t}`).join("\n")+"\n";
+  if(!visto.length&&!viendo.length)out+="(vacío)\n";
+  return out;
 }
 let exportFormat="txt";
 $("bExp").onclick=()=>{$("expTx").value=txt();$("eMsg").textContent="";exportFormat="txt";open("ovExp")};
@@ -1649,10 +1645,10 @@ $("bCopy").onclick=async()=>{
 };
 $("bDl").onclick=async()=>{
   if(exportFormat==="txt"){
-    try{const d=await claude.use("downloads");if(d){await d.save({filename:"anime-visto.txt",data:$("expTx").value});$("eMsg").textContent="Listo.";return}}catch(e){if(e&&e.code==="cancelled")return}
+    try{const d=await claude.use("downloads");if(d){await d.save({filename:"mi-lista-anime.txt",data:$("expTx").value});$("eMsg").textContent="Listo.";return}}catch(e){if(e&&e.code==="cancelled")return}
     try{
       const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([$("expTx").value],{type:"text/plain"}));
-      a.download="anime-visto.txt";document.body.appendChild(a);a.click();a.remove();
+      a.download="mi-lista-anime.txt";document.body.appendChild(a);a.click();a.remove();
       $("eMsg").textContent="Si no se descargó, usa «Copiar».";
     }catch(e){$("eMsg").textContent="Descarga no disponible aquí. Usa «Copiar»."}
   }else if(exportFormat==="docx"){
