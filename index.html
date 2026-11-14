@@ -109,6 +109,8 @@ textarea{min-height:140px}
 #fDesc{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;font-size:13px;line-height:1.6;color:var(--tx);resize:none;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;cursor:default}
 #fDesc::-webkit-scrollbar{display:none}
 .msg{font-size:12px;color:var(--mu);margin-top:6px;min-height:16px}
+@keyframes btnPulse{0%,100%{opacity:1}50%{opacity:.55}}
+.btn.loading{animation:btnPulse 1s ease-in-out infinite;pointer-events:none}
 .autocomplete{position:relative}
 .suggestions{position:absolute;top:100%;left:0;right:0;background:var(--card);border:1px solid var(--bd);border-radius:10px;max-height:200px;overflow-y:auto;z-index:100;display:none;box-shadow:0 4px 12px rgba(0,0,0,.15)}
 .suggestion{padding:10px 12px;cursor:pointer;transition:background .2s ease;border-bottom:1px solid var(--bd)}
@@ -290,28 +292,27 @@ function swapCachedCovers(){
   });
 }
 const scrollMem={},viewKey=()=>st+"|"+cat;
-let lastViewKey=null,_scrollT=null;
-addEventListener("scroll",()=>{clearTimeout(_scrollT);_scrollT=setTimeout(()=>{scrollMem[viewKey()]=scrollY},120)},{passive:true});
-function restoreViewScroll(key){
+let lastViewKey=null,_scrollT=null,scrollLock=false;
+addEventListener("scroll",()=>{if(scrollLock)return;clearTimeout(_scrollT);_scrollT=setTimeout(()=>{scrollMem[viewKey()]=scrollY},120)},{passive:true});
+function restoreViewScroll(key,done){
+  const finish=()=>{scrollLock=false;if(done)done();const y=scrollMem[key];if(y!=null)setTimeout(()=>{if(Math.abs(scrollY-y)>4)scrollTo(0,y)},1200)};
   const y=scrollMem[key];
-  if(y==null)return;
+  if(y==null){finish();return}
   const t0=Date.now();let lastH=-1,stable=0;
   const tick=()=>{
     const h=document.documentElement.scrollHeight;
     stable=h===lastH?stable+1:0;lastH=h;
-    if((stable>=2&&Date.now()-t0>400)||Date.now()-t0>4000){
-      scrollTo(0,y);
-      setTimeout(()=>{if(Math.abs(scrollY-y)>4)scrollTo(0,y)},1200);
-      return;
+    if((stable>=2&&Date.now()-t0>250)||Date.now()-t0>2500){
+      scrollTo(0,y);finish();return;
     }
-    setTimeout(tick,150);
+    setTimeout(tick,100);
   };
   tick();
 }
 function render(animate=true){
   const vk=viewKey();
   if(lastViewKey&&lastViewKey!==vk)scrollMem[lastViewKey]=scrollY;
-  const viewChanged=vk!==lastViewKey;lastViewKey=vk;
+  const viewChanged=vk!==lastViewKey;lastViewKey=vk;scrollLock=viewChanged;
   $("count").textContent=items.length+" anime en total";
   $("tabs").innerHTML=STS.map(s=>`<div class="tab ${s===st?"on":""}" data-s="${s}">${s} (${items.filter(i=>i.st===s).length})</div>`).join("");
   const allCats=new Set();
@@ -331,9 +332,8 @@ function render(animate=true){
     grid.style.transform="translateY(10px)";
     setTimeout(()=>{
       grid.innerHTML=list.length?list.map(i=>`<div class="it" data-id="${i.id}"><div class="cv" style="${bg(i.t,null)};position:relative">${cvHtml(i)}${cardBadges(i)}</div><div class="meta"><div class="t">${esc(i.t)}</div><div class="c">${(i.cats?i.cats.join(", "):i.cat)}</div></div></div>`).join(""):`<div class="empty" style="grid-column:1/-1">Nada por aquí todavía.<br>Pulsa + para añadir.</div>`;
-      grid.style.opacity="1";
-      grid.style.transform="translateY(0)";
-      if(viewChanged)restoreViewScroll(vk);
+      const reveal=()=>{grid.style.opacity="1";grid.style.transform="translateY(0)"};
+      if(viewChanged)restoreViewScroll(vk,reveal);else reveal();
     },150);
   }else{
     grid.innerHTML=list.length?list.map(i=>`<div class="it" data-id="${i.id}"><div class="cv" style="${bg(i.t,null)};position:relative">${cvHtml(i)}${cardBadges(i)}</div><div class="meta"><div class="t">${esc(i.t)}</div><div class="c">${(i.cats?i.cats.join(", "):i.cat)}</div></div></div>`).join(""):`<div class="empty" style="grid-column:1/-1">Nada por aquí todavía.<br>Pulsa + para añadir.</div>`;
@@ -581,7 +581,7 @@ function syncEpUI(){
 }
 function openForm(id){
   editId=id;const i=items.find(x=>x.id===id);
-  $("fTitle").textContent=i?"Editar anime":"Nuevo anime";
+  $("fTitle").textContent=i?"Detalles del Anime":"Nuevo anime";
   $("fName").value=i?i.t:"";$("fSt").value=i?i.st:st;
   $("fStTabs").querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.st===$("fSt").value));
   $("fDesc").value=i?i.desc||"":"";
@@ -1298,7 +1298,8 @@ $("bFind").onclick=async()=>{
   if(!navigator.onLine){$("fMsg").textContent="⚠️ Sin conexión a internet.";console.log("⚠️ Sin conexión, búsqueda omitida");return}
   if(cover&&coverManual){if(!await appConfirm("Ya tienes una portada personal. ¿Quieres reemplazarla con la búsqueda automática?"))return}
   console.log("🔍 Búsqueda manual iniciada:", t);
-  $("fMsg").textContent="Buscando datos…";
+  const bf=$("bFind"),bfTxt=bf.textContent;
+  bf.classList.add("loading");bf.textContent="⏳ Buscando…";
   episodesFound=null;categoriesFound=null;seasonsFound=null;airingFound=false;
   let foundAny=false;
   const r=await findCover(t);
@@ -1361,6 +1362,7 @@ $("bFind").onclick=async()=>{
   }
   airingFound=lastAirFound;
   syncEpUI();
+  bf.classList.remove("loading");bf.textContent=bfTxt;
 };
 $("bUp").onclick=()=>$("file").click();
 $("file").onchange=e=>{
@@ -1482,7 +1484,8 @@ async function fetchAllCovers(){
   try{await wakeLock?.release()}catch(e){}
   wakeLock=null;
   $("bCancelBulk").style.display="none";
-  $("aMsg").textContent=`${bulkCancel?"Cancelado. ":""}Listo: ${ok} portadas, ${descOk} descripciones, ${epOk} episodios y ${seasonOk} con temporadas de ${todo.length-skipped} animes válidos.${errors?" ("+errors+" errores).":""}${skipped?" ("+skipped+" nombres inválidos saltados).":""}${doneSkip?" ("+doneSkip+" ya completos saltados).":""}`;
+  const updated=done-skipped-doneSkip;
+  $("aMsg").textContent=`${bulkCancel?"Cancelado. ":""}✅ Listo: ${updated} actualizados, ${doneSkip} ya completos${errors?` · ${errors} errores`:""}${skipped?` · ${skipped} inválidos`:""}`;
 }
 $("bCovers").onclick=fetchAllCovers;
 $("bCancelBulk").onclick=()=>{bulkCancel=true;$("aMsg").textContent="Cancelando tras el anime actual…";$("bMsg").textContent="Cancelando tras el anime actual…"};
@@ -1674,7 +1677,7 @@ $("bGo").onclick=async()=>{
   try{await wakeLock?.release()}catch(e){}
   wakeLock=null;
   $("bCancelImp").style.display="none";
-  $("bMsg").textContent=`${bulkCancel?"Cancelado. ":""}Listo: ${ok} portadas, ${descOk} descripciones, ${epOk} episodios y ${seasonOk} con temporadas de ${added.length} animes.${errors?" ("+errors+" errores).":""}`;
+  $("bMsg").textContent=`${bulkCancel?"Cancelado. ":""}✅ Listo: ${added.length} animes procesados${errors?` · ${errors} errores`:""}`;
 };
 $("bCancelImp").onclick=()=>{bulkCancel=true;$("bMsg").textContent="Cancelando tras el anime actual…"};
 
