@@ -321,12 +321,15 @@ function render(animate=true){
     if(i.cats)i.cats.forEach(c=>allCats.add(c));
     if(i.cat)allCats.add(i.cat);
   });
+  const isMovie=i=>i.episodes==="1"||i.episodes===1;
   const used=["Todas",...CATS.filter(c=>items.some(i=>i.st===st&&(i.cats?i.cats.includes(c):i.cat===c)))];
+  if(items.some(i=>i.st===st&&isMovie(i)))used.push("Películas");
   if(!used.includes(cat))cat="Todas";
   $("chips").innerHTML=used.map(c=>`<div class="chip ${c===cat?"on":""}" data-c="${c}">${c}</div>`).join("");
   const q=$("q").value.trim().toLowerCase();
   const SORTS={az:(a,b)=>a.t.localeCompare(b.t),za:(a,b)=>b.t.localeCompare(a.t),new:(a,b)=>(b.a||0)-(a.a||0),old:(a,b)=>(a.a||0)-(b.a||0)};
-  const list=items.filter(i=>i.st===st&&(cat==="Todas"||(i.cats?i.cats.includes(cat):i.cat===cat))&&i.t.toLowerCase().includes(q)).sort(SORTS[sortMode]||SORTS.az);
+  const matchCat=i=>cat==="Todas"?true:cat==="Películas"?isMovie(i):(i.cats?i.cats.includes(cat):i.cat===cat);
+  const list=items.filter(i=>i.st===st&&matchCat(i)&&i.t.toLowerCase().includes(q)).sort(SORTS[sortMode]||SORTS.az);
   const grid=$("grid");
   if(animate){
     grid.style.opacity="0";
