@@ -55,7 +55,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac);box-
 .sortsel:focus{outline:none;border-color:var(--ac)}
 .cvimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .meta{padding:8px 10px}
-.t{font-size:13px;font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.t{font-size:13px;font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .c{font-size:11px;color:var(--mu);margin-top:3px}
 .episodes{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.7);color:#fff;font-size:10px;padding:2px 6px;border-radius:8px;font-weight:600}
 .seasons{position:absolute;top:5px;left:5px;background:rgba(0,0,0,.7);color:#fff;font-size:10px;padding:2px 6px;border-radius:8px;font-weight:600}
@@ -256,7 +256,7 @@ const CATS=["Acción","Aventura","Comedia","Drama","Fantasía","Romance","Cienci
 const STS=["Visto","Viendo"];
 const GMAP={Action:"Acción",Adventure:"Aventura",Comedy:"Comedia",Drama:"Drama",Fantasy:"Fantasía",Romance:"Romance","Sci-Fi":"Ciencia ficción",Horror:"Terror","Slice of Life":"Slice of life",Sports:"Deportes",Mystery:"Misterio",Supernatural:"Fantasía",Thriller:"Misterio","Psychological":"Drama","Mecha":"Ciencia ficción",Music:"Romance",Isekai:"Isekai","Science Fiction":"Ciencia ficción","School":"Slice of life","Slice of Life":"Slice of life","Suspense":"Misterio","Super Power":"Acción","Seinen":"Drama","Shoujo":"Romance","Shounen":"Acción","Kids":"Aventura"};
 const $=id=>document.getElementById(id);
-let items=[],st="Visto",cat="Todas",editId=null,cover=null,coverManual=false,episodesFound=null,categoriesFound=null,seasonsFound=null,selSeasonId=null,sortMode="az",bulkCancel=false;
+let items=[],st=STS.includes(localStorage.getItem("anime-st"))?localStorage.getItem("anime-st"):"Visto",cat="Todas",editId=null,cover=null,coverManual=false,episodesFound=null,categoriesFound=null,seasonsFound=null,selSeasonId=null,sortMode="az",bulkCancel=false;
 let airingFound=false,lastAirFound=false;
 try{items=JSON.parse(localStorage.getItem("anime-list")||"[]")}catch(e){}
 const save=()=>{try{localStorage.setItem("anime-list",JSON.stringify(items))}catch(e){appAlert("No se pudo guardar (almacenamiento lleno).")}
@@ -313,6 +313,7 @@ function render(animate=true){
   const vk=viewKey();
   if(lastViewKey&&lastViewKey!==vk)scrollMem[lastViewKey]=scrollY;
   const viewChanged=vk!==lastViewKey;lastViewKey=vk;scrollLock=viewChanged;
+  try{localStorage.setItem("anime-st",st)}catch(e){}
   $("count").textContent=items.length+" anime en total";
   $("tabs").innerHTML=STS.map(s=>`<div class="tab ${s===st?"on":""}" data-s="${s}">${s} (${items.filter(i=>i.st===s).length})</div>`).join("");
   const allCats=new Set();
@@ -354,15 +355,31 @@ function mainSeasonCount(i){
   if(!i||!i.seasons)return 0;
   const mains=i.seasons.filter(isMainSeason);
   const names=new Set(mains.map(s=>normalizeTitle(s.name||"")));
-  return mains.filter(s=>{
+  const isPart=s=>/\bpart\s+\d+$/i.test(normalizeTitle(s.name||""));
+  const merged=new Set();
+  mains.forEach(s=>{
     const m=normalizeTitle(s.name||"").match(/^(.*)\s+part\s+\d+$/);
-    return !(m&&names.has(m[1].trim()));
-  }).length;
+    if(!m)return;
+    const base=m[1].trim();
+    if(names.has(base)){merged.add(s);return}
+    const cands=mains.filter(p=>p!==s&&!merged.has(p)&&!isPart(p));
+    cands.sort((a,b)=>similarity(base,b.name||"")-similarity(base,a.name||""));
+    if(cands.length&&similarity(base,cands[0].name||"")<0.5)merged.add(s);
+  });
+  return mains.filter(s=>!merged.has(s)).length;
+}
+function totalEpisodes(i){
+  if(i&&i.seasons){
+    const sum=i.seasons.filter(isMainSeason).reduce((a,s)=>a+(parseInt(s.episodes)||0),0);
+    if(sum>0)return String(sum);
+  }
+  return i?i.episodes:null;
 }
 function cardBadges(i){
   if(mainSeasonCount(i)>1)return `<span class="seasons">${mainSeasonCount(i)} temp</span>`;
   if(i.air)return `<span class="episodes">En emisión</span>`;
-  return i.episodes?`<span class="episodes">${i.episodes==1?"película":i.episodes+" ep"}</span>`:"";
+  const te=totalEpisodes(i);
+  return te?`<span class="episodes">${te==1||te==="1"?"película":te+" ep"}</span>`:"";
 }
 function seasonsInfoHTML(seasons){
   const mains=seasons.filter(isMainSeason);
@@ -1106,6 +1123,7 @@ async function findSeasons(title){
                     name:entry.name||seasonInfo.title_english||seasonInfo.title,
                     episodes:seasonInfo.episodes?seasonInfo.episodes.toString():"",
                     mal_id:entry.mal_id,
+                    parent:currentMalId,
                     relation:rel.relation,
                     type:seasonInfo.type||"",
                     main:isMain,

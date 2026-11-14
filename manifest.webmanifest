@@ -1,6 +1,6 @@
 {
-  "name": "Mi Lista Anime",
-  "short_name": "MiAnime",
+  "name": "ListAnime",
+  "short_name": "ListAnime",
   "description": "Tu lista personal de anime",
   "start_url": "./",
   "scope": "./",
