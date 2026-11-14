@@ -289,7 +289,29 @@ function swapCachedCovers(){
     if(c){const img=el.querySelector(".cvimg");if(img)img.src=c}
   });
 }
+const scrollMem={},viewKey=()=>st+"|"+cat;
+let lastViewKey=null,_scrollT=null;
+addEventListener("scroll",()=>{clearTimeout(_scrollT);_scrollT=setTimeout(()=>{scrollMem[viewKey()]=scrollY},120)},{passive:true});
+function restoreViewScroll(key){
+  const y=scrollMem[key];
+  if(y==null)return;
+  const t0=Date.now();let lastH=-1,stable=0;
+  const tick=()=>{
+    const h=document.documentElement.scrollHeight;
+    stable=h===lastH?stable+1:0;lastH=h;
+    if((stable>=2&&Date.now()-t0>400)||Date.now()-t0>4000){
+      scrollTo(0,y);
+      setTimeout(()=>{if(Math.abs(scrollY-y)>4)scrollTo(0,y)},1200);
+      return;
+    }
+    setTimeout(tick,150);
+  };
+  tick();
+}
 function render(animate=true){
+  const vk=viewKey();
+  if(lastViewKey&&lastViewKey!==vk)scrollMem[lastViewKey]=scrollY;
+  const viewChanged=vk!==lastViewKey;lastViewKey=vk;
   $("count").textContent=items.length+" anime en total";
   $("tabs").innerHTML=STS.map(s=>`<div class="tab ${s===st?"on":""}" data-s="${s}">${s} (${items.filter(i=>i.st===s).length})</div>`).join("");
   const allCats=new Set();
@@ -311,9 +333,11 @@ function render(animate=true){
       grid.innerHTML=list.length?list.map(i=>`<div class="it" data-id="${i.id}"><div class="cv" style="${bg(i.t,null)};position:relative">${cvHtml(i)}${cardBadges(i)}</div><div class="meta"><div class="t">${esc(i.t)}</div><div class="c">${(i.cats?i.cats.join(", "):i.cat)}</div></div></div>`).join(""):`<div class="empty" style="grid-column:1/-1">Nada por aquí todavía.<br>Pulsa + para añadir.</div>`;
       grid.style.opacity="1";
       grid.style.transform="translateY(0)";
+      if(viewChanged)restoreViewScroll(vk);
     },150);
   }else{
     grid.innerHTML=list.length?list.map(i=>`<div class="it" data-id="${i.id}"><div class="cv" style="${bg(i.t,null)};position:relative">${cvHtml(i)}${cardBadges(i)}</div><div class="meta"><div class="t">${esc(i.t)}</div><div class="c">${(i.cats?i.cats.join(", "):i.cat)}</div></div></div>`).join(""):`<div class="empty" style="grid-column:1/-1">Nada por aquí todavía.<br>Pulsa + para añadir.</div>`;
+    if(viewChanged)restoreViewScroll(vk);
   }
 }
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -590,7 +614,7 @@ const paintTab=(el,w)=>{
   el.style.color=w>0.5?"var(--ac-ink)":"var(--tx)";
 };
 document.addEventListener("touchstart",e=>{
-  swipeArmed=!e.target.closest(".ov,.lb,.search-overlay,input,textarea,select");
+  swipeArmed=!e.target.closest(".ov,.lb,.search-overlay,.header,input,textarea,select,#chips");
   if(swipeArmed){swX=e.touches[0].clientX;swY=e.touches[0].clientY;lastSwipe=0;swiping=false}
 },{passive:true});
 document.addEventListener("touchmove",e=>{
@@ -600,7 +624,7 @@ document.addEventListener("touchmove",e=>{
   if(!swiping&&Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.2)swiping=true;
   if(swiping){
     const ai=STS.indexOf(st),ti=ai+(dx<0?1:-1);
-    const p=ti>=0&&ti<STS.length?Math.min(1,Math.abs(dx)/100):0;
+    const p=ti>=0&&ti<STS.length?Math.min(1,Math.abs(dx)/160):0;
     const tabs=tabsEl().children;
     if(tabs[ai])paintTab(tabs[ai],1-p);
     if(tabs[ti]&&p>0)paintTab(tabs[ti],p);
@@ -616,7 +640,7 @@ document.addEventListener("touchend",e=>{
   const dx=e.changedTouches[0].clientX-swX,dy=e.changedTouches[0].clientY-swY;
   const dir=dx<0?1:-1;
   const ai=STS.indexOf(st),ni=ai+dir;
-  const commit=Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5&&ni>=0&&ni<STS.length;
+  const commit=Math.abs(dx)>120&&Math.abs(dx)>Math.abs(dy)*1.5&&ni>=0&&ni<STS.length;
   if(commit){
     lastSwipe=Date.now();
     st=STS[ni];
@@ -1064,7 +1088,7 @@ async function findSeasons(title){
                   console.log("    ⏭️ Título no relacionado:", entry.name, "(score:", titleScore.toFixed(2), ")");
                   continue;
                 }
-                const franchiseMatch=candNames.some(c=>origFirsts.has(firstTok(c)));
+                const franchiseMatch=candNames.some(c=>origFirsts.has(firstTok(c)))||titleScore>=0.5;
                 if(!franchiseMatch&&(seasonInfo.type==="TV"||seasonInfo.type==="ONA")){
                   console.log("    ⏭️ Serie fuera de franquicia:", entry.name);
                   continue;
@@ -1076,7 +1100,7 @@ async function findSeasons(title){
                   const durStr=seasonInfo.duration||"";
                   const durMinMatch=durStr.match(/(\d+)\s*min/i);
                   const durMin=/\d+\s*hr/i.test(durStr)?60:(durMinMatch?parseInt(durMinMatch[1]):null);
-                  const isChibi=/\b(mini|chibi|spin[- ]?off|short anime)\b/i.test((entry.name||"")+" "+(seasonInfo.title_english||""))||(durMin!==null&&durMin<10)||(durMin===null&&seasonInfo.episodes!=null&&seasonInfo.episodes<=5);
+                  const isChibi=/\b(mini|chibi|spin[- ]?off|short anime)\b/i.test((entry.name||"")+" "+(seasonInfo.title_english||""))||(durMin!==null&&durMin<10)||(seasonInfo.episodes!=null&&seasonInfo.episodes<=4)||(durMin===null&&seasonInfo.episodes!=null&&seasonInfo.episodes<=5);
                   const isMain=!isPrequel&&!isChibi&&franchiseMatch&&(!seasonInfo.episodes||seasonInfo.episodes>1)&&(seasonInfo.type==="TV"||(seasonInfo.type==="ONA"&&(origType==="ONA"||(rel.relation==="Sequel"&&(parentType==="TV"||parentType==="ONA")))));
                   const seasonObj={
                     name:entry.name||seasonInfo.title_english||seasonInfo.title,
@@ -1381,6 +1405,7 @@ async function fetchAllCovers(){
   $("bCancelBulk").style.display="";
   const onlyMissing=$("chkMissing").checked;
   const complete=a=>a.cv&&a.desc&&a.episodes&&(a.seasons&&a.seasons.length||a.episodes==="1"||a.episodes===1);
+  const isFallbackCover=a=>{const c=a.cv||"";return !a.cvManual&&/^https?:\/\//.test(c)&&!/myanimelist\.net/i.test(c)};
   let ok=0,skipped=0,doneSkip=0,descOk=0,epOk=0,seasonOk=0,errors=0,done=0,errStreak=0,next=0;
   const updateMsg=a=>{$("aMsg").textContent=`Avance ${done}/${todo.length}${a?" · "+a.t:""}`};
   const worker=async()=>{
@@ -1389,7 +1414,8 @@ async function fetchAllCovers(){
       if(k>=todo.length)break;
       const a=todo[k];
       if(!isValidAnimeName(a.t)){skipped++;done++;updateMsg();continue}
-      if(onlyMissing&&complete(a)){doneSkip++;done++;updateMsg();continue}
+      if(onlyMissing&&complete(a)&&!isFallbackCover(a)){doneSkip++;done++;updateMsg();continue}
+      const coverOnly=onlyMissing&&complete(a)&&isFallbackCover(a);
       updateMsg(a);
       try{
         const r=await findCover(a.t);
@@ -1412,12 +1438,14 @@ async function fetchAllCovers(){
           if(r.air!==undefined)a.air=!!r.air;
           save();scheduleBulkRender();
         }
-        const desc=await findDescription(a.t);
-        if(desc){
-          a.desc=desc;
-          descOk++;
-          console.log("📝 Descripción actualizada:", a.t);
-          save();scheduleBulkRender();
+        if(!coverOnly){
+          const desc=await findDescription(a.t);
+          if(desc){
+            a.desc=desc;
+            descOk++;
+            console.log("📝 Descripción actualizada:", a.t);
+            save();scheduleBulkRender();
+          }
         }
         if(!a.episodes){
           const episodes=await findEpisodes(a.t);
