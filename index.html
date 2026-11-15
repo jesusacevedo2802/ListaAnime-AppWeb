@@ -257,7 +257,7 @@ const STS=["Visto","Viendo"];
 const GMAP={Action:"Acción",Adventure:"Aventura",Comedy:"Comedia",Drama:"Drama",Fantasy:"Fantasía",Romance:"Romance","Sci-Fi":"Ciencia ficción",Horror:"Terror","Slice of Life":"Slice of life",Sports:"Deportes",Mystery:"Misterio",Supernatural:"Fantasía",Thriller:"Misterio","Psychological":"Drama","Mecha":"Ciencia ficción",Music:"Romance",Isekai:"Isekai","Science Fiction":"Ciencia ficción","School":"Slice of life","Slice of Life":"Slice of life","Suspense":"Misterio","Super Power":"Acción","Seinen":"Drama","Shoujo":"Romance","Shounen":"Acción","Kids":"Aventura"};
 const $=id=>document.getElementById(id);
 let items=[],st=STS.includes(localStorage.getItem("anime-st"))?localStorage.getItem("anime-st"):"Visto",cat="Todas",editId=null,cover=null,coverManual=false,episodesFound=null,categoriesFound=null,seasonsFound=null,selSeasonId=null,sortMode="az",bulkCancel=false;
-let airingFound=false,lastAirFound=false;
+let airingFound=false,lastAirFound=false,seasonsPartialFound=false,lastSeasonsPartial=false;
 try{items=JSON.parse(localStorage.getItem("anime-list")||"[]")}catch(e){}
 const save=()=>{try{localStorage.setItem("anime-list",JSON.stringify(items))}catch(e){appAlert("No se pudo guardar (almacenamiento lleno).")}
   items.forEach(i=>{if(i.cv)cacheCover(i.cv)})};
@@ -606,10 +606,10 @@ function openForm(id){
   $("fStTabs").querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.st===$("fSt").value));
   $("fDesc").value=i?i.desc||"":"";
   cover=i?i.cv:null;coverManual=i?i.cvManual||false:false;$("bDel").style.display=i?"":"none";$("fMsg").textContent="";
-  episodesFound=null;categoriesFound=null;seasonsFound=null;airingFound=false;lastAirFound=false;
+  episodesFound=null;categoriesFound=null;seasonsFound=null;airingFound=false;lastAirFound=false;seasonsPartialFound=false;
   if(i&&i.episodes)episodesFound=i.episodes;
   if(i&&i.cats)categoriesFound=i.cats;
-  if(i&&i.seasons)seasonsFound=i.seasons;
+  if(i&&i.seasons){seasonsFound=i.seasons;seasonsPartialFound=!!i.seasonsPartial}
   if(i&&i.air)airingFound=true;
   selSeasonId=i?(i.sel||null):null;
   const seasonsInfo=$("seasonsInfo");
@@ -990,6 +990,7 @@ async function findEpisodes(title){
 }
 
 async function findSeasons(title){
+  lastSeasonsPartial=false;
   try{
     const normalized=normalizeTitle(title);
     const expanded=ABBREVIATIONS[normalized]||title;
@@ -1062,7 +1063,7 @@ async function findSeasons(title){
       console.error("❌ Error obteniendo anime principal:", e.message);
     }
     
-    let iterations=0;
+    let iterations=0,partial=false;
     const REL_TYPES=["Sequel","Prequel","Alternative","Alternative Version","Side Story","Other"];
     const mainCount=()=>seasons.filter(isMainSeason).length;
     while(queue.length>0&&mainCount()<15&&iterations<30){
@@ -1073,7 +1074,7 @@ async function findSeasons(title){
       
       try{
         const relationsR=await fetchWithRetry("https://api.tenrai.org/v1/anime/"+currentMalId+"/relations");
-        if(!relationsR||!relationsR.ok)continue;
+        if(!relationsR||!relationsR.ok){partial=true;continue;}
         
         const relationsData=await relationsR.json();
         const relations=relationsData.data||[];
@@ -1147,16 +1148,19 @@ async function findSeasons(title){
                   }
                 }
                 if(franchiseMatch)queue.push(entry.mal_id);
-              }
+              }else partial=true;
             }catch(e){
+              partial=true;
               console.error("❌ Error obteniendo temporada:", entry.name, e.message);
             }
           }
         }
       }catch(e){
+        partial=true;
         console.error("❌ Error obteniendo relaciones para MAL ID", currentMalId, ":", e.message);
       }
     }
+    if(queue.length>0)partial=true;
     
     if(altPool.length){
       const candidates=[];
@@ -1190,6 +1194,8 @@ async function findSeasons(title){
     console.log("✅ Temporadas encontradas para:", title, "-", mains.length, "temporadas,", extras.length, "extras");
     console.log("   Temporadas:", mains.map(s=>s.name+" ("+s.episodes+" ep)").join(", ")||"ninguna");
     if(extras.length)console.log("   Extras:", extras.map(s=>s.name+" ["+(s.type||"?")+"] ("+s.episodes+" ep)").join(", "));
+    lastSeasonsPartial=partial;
+    if(partial)console.log("⚠️ Búsqueda de temporadas incompleta (posible rate-limit):", title);
     return seasons;
   }catch(e){
     console.error("❌ Error buscando temporadas:", title, e.message);
@@ -1326,7 +1332,7 @@ $("bFind").onclick=async()=>{
   const r=await findCover(t);
   if(r&&r.cv){
     foundAny=true;
-    cover=r.cv;coverManual=false;if(r.cats)categoriesFound=r.cats;if(r.episodes)episodesFound=r.episodes;if(r.seasons)seasonsFound=r.seasons;prev();
+    cover=r.cv;coverManual=false;if(r.cats)categoriesFound=r.cats;if(r.episodes)episodesFound=r.episodes;if(r.seasons){seasonsFound=r.seasons;seasonsPartialFound=lastSeasonsPartial};prev();
     console.log("✅ Portada manual actualizada:", t, "->", r.name, "| Categorías:", r.cats?r.cats.join(", "):"N/A", "| Episodios:", r.episodes||"N/A", "| Temporadas:", r.seasons?r.seasons.length:"N/A");
     const seasonsInfo=$("seasonsInfo");
     if(r.seasons&&r.seasons.length>0&&episodesFound!=="1"&&episodesFound!==1){
@@ -1363,6 +1369,7 @@ $("bFind").onclick=async()=>{
     if(seasons){
       foundAny=true;
       seasonsFound=seasons;
+      seasonsPartialFound=lastSeasonsPartial;
       console.log("✅ Temporadas manuales encontradas:", seasons.length);
       const seasonsInfo=$("seasonsInfo");
       if(seasons.length>0&&episodesFound!=="1"&&episodesFound!==1){
@@ -1427,7 +1434,7 @@ async function fetchAllCovers(){
   try{wakeLock=await navigator.wakeLock.request("screen")}catch(e){}
   $("bCancelBulk").style.display="";
   const onlyMissing=$("chkMissing").checked;
-  const complete=a=>a.cv&&a.desc&&a.episodes&&(a.seasons&&a.seasons.length||a.episodes==="1"||a.episodes===1);
+  const complete=a=>a.cv&&a.desc&&a.episodes&&!a.seasonsPartial&&(a.seasons&&a.seasons.length||a.episodes==="1"||a.episodes===1);
   const isFallbackCover=a=>{const c=a.cv||"";return !a.cvManual&&/^https?:\/\//.test(c)&&!/myanimelist\.net/i.test(c)};
   let ok=0,skipped=0,doneSkip=0,descOk=0,epOk=0,seasonOk=0,errors=0,done=0,errStreak=0,next=0;
   const updateMsg=a=>{$("aMsg").textContent=`Avance ${done}/${todo.length}${a?" · "+a.t:""}`};
@@ -1456,6 +1463,7 @@ async function fetchAllCovers(){
           }
           if(r.seasons){
             a.seasons=r.seasons;
+            a.seasonsPartial=lastSeasonsPartial;
             seasonOk++;
           }
           if(r.air!==undefined)a.air=!!r.air;
@@ -1483,6 +1491,7 @@ async function fetchAllCovers(){
           const seasons=await findSeasons(a.t);
           if(seasons){
             a.seasons=seasons;
+            a.seasonsPartial=lastSeasonsPartial;
             seasonOk++;
             save();scheduleBulkRender();
           }
@@ -1538,11 +1547,12 @@ $("bSave").onclick=async()=>{
     const s=await findSeasons(t);
     if(s){
       seasons=s;
+      seasonsPartialFound=lastSeasonsPartial;
       console.log("✅ Temporadas automáticas encontradas:", s.length);
     }
   }
   if(!editId)airingFound=lastAirFound;
-  const o={t,cats,st:$("fSt").value,cv:cover,cvManual:coverManual,desc,episodes,seasons,sel:selSeasonId,air:airingFound||false};
+  const o={t,cats,st:$("fSt").value,cv:cover,cvManual:coverManual,desc,episodes,seasons,seasonsPartial:!!seasonsPartialFound,sel:selSeasonId,air:airingFound||false};
   if(editId){
     console.log("💾 Guardando cambios de anime:", t);
     console.log("   - Categorías:", cats.join(", "));
@@ -1677,14 +1687,14 @@ $("bGo").onclick=async()=>{
         if(r.cats&&r.cats.length>0)a.cats=r.cats;
         if(r.episodes){a.episodes=r.episodes;epOk++}
         if(r.air!==undefined)a.air=!!r.air;
-        if(r.seasons){a.seasons=r.seasons;seasonOk++}
+        if(r.seasons){a.seasons=r.seasons;a.seasonsPartial=lastSeasonsPartial;seasonOk++}
       }
       let desc=null;
       if(r&&r.synopsis)desc=await translateToSpanish(r.synopsis);
       if(!desc)desc=await findDescription(a.t);
       if(desc){a.desc=desc;descOk++}
       if(!a.episodes){const ep=await findEpisodes(a.t);if(ep){a.episodes=ep;epOk++}}
-      if(!a.seasons){const s=await findSeasons(a.t);if(s){a.seasons=s;seasonOk++}}
+      if(!a.seasons){const s=await findSeasons(a.t);if(s){a.seasons=s;a.seasonsPartial=lastSeasonsPartial;seasonOk++}}
       save();scheduleBulkRender();
     }catch(e){
       console.error("Error importando",a.t,":",e);
