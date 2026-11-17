@@ -91,13 +91,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac);box-
 #ovForm .row:last-child .btn{padding:12px 16px;border-radius:14px}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:200;transition:opacity .3s ease;opacity:0}
 .ov.show{display:flex;opacity:1}
-.sheet{background:var(--bg);width:100%;max-width:760px;max-height:95%;overflow:auto;border-radius:20px 20px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px));transition:transform .3s ease;transform:translateY(100%)}
+.sheet{background:var(--bg);width:100%;max-width:760px;max-height:95%;overflow:auto;overscroll-behavior:contain;border-radius:20px 20px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px));transition:transform .38s cubic-bezier(.32,.72,0,1);transform:translateY(100%)}
 #ovForm{align-items:stretch}
 #ovForm .sheet{display:flex;flex-direction:column;align-items:center;justify-content:space-between;max-width:none;max-height:100%;height:100%;border-radius:0;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px))}
 #ovForm .sheet>*{width:100%;max-width:640px;flex-shrink:0}
 #ovForm #fDesc{flex:0 1 auto}
 #ovForm .sheet>.row:last-child{margin-top:6px}
-.ov.show .sheet{transform:translateY(0)}
+.ov.show .sheet{transform:translateY(0)}html:has(.ov.show),html:has(.lb.show){overflow:hidden}
 #ovConfirm{z-index:300}
 .sheet h2{margin:0 0 8px;font-size:18px}
 label{font-size:12px;color:var(--mu);display:block;margin-top:10px}
@@ -256,7 +256,7 @@ const CATS=["Acción","Aventura","Comedia","Drama","Fantasía","Romance","Cienci
 const STS=["Visto","Viendo"];
 const GMAP={Action:"Acción",Adventure:"Aventura",Comedy:"Comedia",Drama:"Drama",Fantasy:"Fantasía",Romance:"Romance","Sci-Fi":"Ciencia ficción",Horror:"Terror","Slice of Life":"Slice of life",Sports:"Deportes",Mystery:"Misterio",Supernatural:"Fantasía",Thriller:"Misterio","Psychological":"Drama","Mecha":"Ciencia ficción",Music:"Romance",Isekai:"Isekai","Science Fiction":"Ciencia ficción","School":"Slice of life","Slice of Life":"Slice of life","Suspense":"Misterio","Super Power":"Acción","Seinen":"Drama","Shoujo":"Romance","Shounen":"Acción","Kids":"Aventura"};
 const $=id=>document.getElementById(id);
-let items=[],st=STS.includes(localStorage.getItem("anime-st"))?localStorage.getItem("anime-st"):"Visto",cat="Todas",editId=null,cover=null,coverManual=false,episodesFound=null,categoriesFound=null,seasonsFound=null,selSeasonId=null,sortMode="az",bulkCancel=false;
+let items=[],st=STS.includes(localStorage.getItem("anime-st"))?localStorage.getItem("anime-st"):"Visto",catSel=new Set(),editId=null,cover=null,coverManual=false,episodesFound=null,categoriesFound=null,seasonsFound=null,selSeasonId=null,sortMode="az",bulkCancel=false;
 let airingFound=false,lastAirFound=false,seasonsPartialFound=false,lastSeasonsPartial=false;
 try{items=JSON.parse(localStorage.getItem("anime-list")||"[]")}catch(e){}
 const save=()=>{try{localStorage.setItem("anime-list",JSON.stringify(items))}catch(e){appAlert("No se pudo guardar (almacenamiento lleno).")}
@@ -265,6 +265,7 @@ const hue=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return h};
 const bg=(t,c)=>`background-image:${c?`url(${c}),`:""}linear-gradient(160deg,hsl(${hue(t)},65%,48%),hsl(${(hue(t)+50)%360},70%,30%))`;
 const ini=t=>c=>c;
 const coverCache={},coverPending=new Set(),coverFailed=new Set();
+const fmtDur=ms=>{const s=Math.max(1,Math.round(ms/1000));if(s<90)return"~"+s+" s";const m=Math.round(s/60);if(m<90)return"~"+m+" min";return"~"+(Math.floor(m/60))+" h "+(m%60)+" min"};
 let coverDb=null;
 const covOf=i=>i?coverCache[i.cv]||i.cv:null;
 const cvHtml=i=>{const c=covOf(i);return c?`<img class="cvimg" loading="lazy" src="${esc(c)}" alt="">`:esc(i.t[0].toUpperCase())};
@@ -291,7 +292,7 @@ function swapCachedCovers(){
     if(c){const img=el.querySelector(".cvimg");if(img)img.src=c}
   });
 }
-const scrollMem={},viewKey=()=>st+"|"+cat;
+const scrollMem={},viewKey=()=>st+"|"+[...catSel].sort().join(",");
 let lastViewKey=null,_scrollT=null,scrollLock=false;
 addEventListener("scroll",()=>{if(scrollLock)return;clearTimeout(_scrollT);_scrollT=setTimeout(()=>{scrollMem[viewKey()]=scrollY},120)},{passive:true});
 function restoreViewScroll(key,done){
@@ -324,11 +325,11 @@ function render(animate=true){
   const isMovie=i=>i.episodes==="1"||i.episodes===1;
   const used=["Todas",...CATS.filter(c=>items.some(i=>i.st===st&&(i.cats?i.cats.includes(c):i.cat===c)))];
   if(items.some(i=>i.st===st&&isMovie(i)))used.push("Películas");
-  if(!used.includes(cat))cat="Todas";
-  $("chips").innerHTML=used.map(c=>`<div class="chip ${c===cat?"on":""}" data-c="${c}">${c}</div>`).join("");
+  [...catSel].forEach(c=>{if(!used.includes(c))used.push(c)});
+  $("chips").innerHTML=used.map(c=>`<div class="chip ${(c==="Todas"?!catSel.size:catSel.has(c))?"on":""}" data-c="${c}">${c}</div>`).join("");
   const q=$("q").value.trim().toLowerCase();
   const SORTS={az:(a,b)=>a.t.localeCompare(b.t),za:(a,b)=>b.t.localeCompare(a.t),new:(a,b)=>(b.a||0)-(a.a||0),old:(a,b)=>(a.a||0)-(b.a||0)};
-  const matchCat=i=>cat==="Todas"?true:cat==="Películas"?isMovie(i):(i.cats?i.cats.includes(cat):i.cat===cat);
+  const matchCat=i=>[...catSel].every(c=>c==="Películas"?isMovie(i):(i.cats?i.cats.includes(c):i.cat===c));
   const list=items.filter(i=>i.st===st&&matchCat(i)&&i.t.toLowerCase().includes(q)).sort(SORTS[sortMode]||SORTS.az);
   const grid=$("grid");
   if(animate){
@@ -422,18 +423,29 @@ function markSeasonSel(){
   }
   if(!marked)els[0].classList.add("sel");
 }
+const ovStack=[];let _skipPop=false;
+const hideOv=id=>{const el=$(id);el.classList.remove("show");setTimeout(()=>el.style.display="none",300)};
 const open=id=>{
   const el=$(id);
+  if(!ovStack.includes(id)){ovStack.push(id);try{history.pushState({ov:id},"")}catch(e){}}
   el.style.display="flex";
   setTimeout(()=>el.classList.add("show"),10);
 };
 const close=id=>{
-  const el=$(id);
-  el.classList.remove("show");
-  setTimeout(()=>el.style.display="none",300);
+  hideOv(id);
+  const i=ovStack.lastIndexOf(id);
+  if(i<0)return;
+  const wasTop=i===ovStack.length-1;
+  ovStack.splice(i,1);
+  if(wasTop){_skipPop=true;try{history.back()}catch(e){_skipPop=false}}
 };
+addEventListener("popstate",()=>{
+  if(_skipPop){_skipPop=false;return}
+  const id=ovStack.pop();
+  if(id!=null)hideOv(id);
+});
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>close(b.dataset.close));
-document.querySelectorAll(".ov").forEach(ov=>ov.addEventListener("click",e=>{if(e.target===ov)close(ov.id)}));
+document.querySelectorAll(".ov").forEach(ov=>ov.addEventListener("click",e=>{if(e.target===ov)close(ov.id)}));document.querySelectorAll(".ov,.lb").forEach(el=>el.addEventListener("touchmove",e=>{if(!e.target.closest(".sheet"))e.preventDefault()},{passive:false}));
 function appConfirm(msg){
   return new Promise(res=>{
     $("cfMsg").textContent=msg;
@@ -462,7 +474,13 @@ $("fStTabs").onclick=e=>{
   $("fStTabs").querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t===b));
 };
 $("tabs").onclick=e=>{if(e.target.dataset.s){st=e.target.dataset.s;render()}};
-$("chips").onclick=e=>{if(e.target.dataset.c){cat=e.target.dataset.c;render()}};
+$("chips").onclick=e=>{
+  const c=e.target.dataset.c;if(!c)return;
+  if(c==="Todas")catSel.clear();
+  else if(catSel.has(c))catSel.delete(c);
+  else catSel.add(c);
+  render();
+};
 $("sortSel").onchange=e=>{sortMode=e.target.value;render()};
 const _savedTheme=localStorage.getItem("anime-theme");
 const _theme=_savedTheme==="light"?"day":(_savedTheme||"dark");
@@ -490,6 +508,24 @@ $("searchClose").onclick=()=>{
   if($("q").value){$("q").value="";render()}
 };
 $("toolsToggle").onclick=()=>open("ovTools");
+const toolsSheet=document.querySelector("#ovTools .sheet");
+let tsY=0,tsT=0,dragY=0,dragging=false;
+toolsSheet.addEventListener("touchstart",e=>{
+  if(e.touches.length!==1||toolsSheet.scrollTop>0)return;
+  tsY=e.touches[0].clientY;tsT=Date.now();dragY=0;dragging=true;
+  toolsSheet.style.transition="none";
+},{passive:true});
+toolsSheet.addEventListener("touchmove",e=>{
+  if(!dragging)return;
+  if(toolsSheet.scrollTop>0){dragging=false;toolsSheet.style.transition="";toolsSheet.style.transform="";return}
+  const dy=e.touches[0].clientY-tsY;
+  if(dy<=0){toolsSheet.style.transform="";return}
+  e.preventDefault();dragY=dy;
+  toolsSheet.style.transform=`translateY(${dy}px)`;
+},{passive:false});
+const endToolsDrag=()=>{if(!dragging)return;dragging=false;toolsSheet.style.transition="";const dy=dragY,dt=Date.now()-tsT;toolsSheet.style.transform="";if(dy>100||(dy>40&&dt<200))close("ovTools")};
+toolsSheet.addEventListener("touchend",endToolsDrag);
+toolsSheet.addEventListener("touchcancel",()=>{if(!dragging)return;dragging=false;toolsSheet.style.transition="";toolsSheet.style.transform=""});
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape")$("searchOverlay").classList.remove("show");
 });
@@ -1130,7 +1166,7 @@ async function findSeasons(title){
                     parent:currentMalId,
                     relation:rel.relation,
                     type:seasonInfo.type||"",
-                    main:isMain,
+                    main:isMain&&rel.relation!=="Other",
                     air:seasonInfo.status==="Currently Airing"
                   };
                   const isAltVersion=(rel.relation==="Alternative"||rel.relation==="Alternative Version")&&seasonInfo.type==="TV"&&(!seasonInfo.episodes||seasonInfo.episodes>1);
@@ -1437,7 +1473,9 @@ async function fetchAllCovers(){
   const complete=a=>a.cv&&a.desc&&a.episodes&&!a.seasonsPartial&&(a.seasons&&a.seasons.length||a.episodes==="1"||a.episodes===1);
   const isFallbackCover=a=>{const c=a.cv||"";return !a.cvManual&&/^https?:\/\//.test(c)&&!/myanimelist\.net/i.test(c)};
   let ok=0,skipped=0,doneSkip=0,descOk=0,epOk=0,seasonOk=0,errors=0,done=0,errStreak=0,next=0;
-  const updateMsg=a=>{$("aMsg").textContent=`Avance ${done}/${todo.length}${a?" · "+a.t:""}`};
+  const workTotal=todo.filter(a=>isValidAnimeName(a.t)&&!(onlyMissing&&complete(a)&&!isFallbackCover(a))).length;
+  let procMs=0,procN=0,bulkT0=Date.now();
+  const updateMsg=a=>{let eta="";if(procN>=3){const rem=workTotal-procN;if(rem>0)eta=" · ~"+fmtDur(procMs/procN*rem)+" restantes"}$("aMsg").textContent=`Avance ${done}/${todo.length}${eta}${a?" · "+a.t:""}`};
   const worker=async()=>{
     while(!bulkCancel){
       const k=next++;
@@ -1446,7 +1484,7 @@ async function fetchAllCovers(){
       if(!isValidAnimeName(a.t)){skipped++;done++;updateMsg();continue}
       if(onlyMissing&&complete(a)&&!isFallbackCover(a)){doneSkip++;done++;updateMsg();continue}
       const coverOnly=onlyMissing&&complete(a)&&isFallbackCover(a);
-      updateMsg(a);
+      updateMsg(a);const w0=Date.now();
       try{
         const r=await findCover(a.t);
         if(r){
@@ -1504,7 +1542,7 @@ async function fetchAllCovers(){
       }
       done++;
       updateMsg();
-      await new Promise(r=>setTimeout(r,errStreak>2?5000:700));
+      await new Promise(r=>setTimeout(r,errStreak>2?5000:700));procMs+=Date.now()-w0;procN++;
     }
   };
   await Promise.all([worker(),worker()]);
@@ -1515,7 +1553,7 @@ async function fetchAllCovers(){
   wakeLock=null;
   $("bCancelBulk").style.display="none";
   const updated=done-skipped-doneSkip;
-  $("aMsg").textContent=`${bulkCancel?"Cancelado. ":""}✅ Listo: ${updated} actualizados, ${doneSkip} ya completos${errors?` · ${errors} errores`:""}${skipped?` · ${skipped} inválidos`:""}`;
+  $("aMsg").textContent=`${bulkCancel?"Cancelado. ":""}✅ Listo: ${updated} actualizados, ${doneSkip} ya completos${errors?` · ${errors} errores`:""}${skipped?` · ${skipped} inválidos`:""} · ${fmtDur(Date.now()-bulkT0)}`;
 }
 $("bCovers").onclick=fetchAllCovers;
 $("bCancelBulk").onclick=()=>{bulkCancel=true;$("aMsg").textContent="Cancelando tras el anime actual…";$("bMsg").textContent="Cancelando tras el anime actual…"};
@@ -1674,12 +1712,14 @@ $("bGo").onclick=async()=>{
   bulkRunning=true;
   try{wakeLock=await navigator.wakeLock.request("screen")}catch(e){}
   $("bCancelImp").style.display="";
+  $("bCancelBulk").style.display="";
   $("bMsg").textContent=added.length+" añadidos. Buscando portadas, descripciones, episodios y temporadas…";
   let ok=0,epOk=0,seasonOk=0,descOk=0,errors=0;
+  const impT0=Date.now();
   for(let k=0;k<added.length;k++){
     if(bulkCancel)break;
     const a=added[k];
-    $("bMsg").textContent=`Buscando ${k+1}/${added.length}: ${a.t}…`;
+    $("bMsg").textContent=`Buscando ${k+1}/${added.length}: ${a.t}…${k>=2?` · ~${fmtDur((Date.now()-impT0)/k*(added.length-k))} restantes`:""}`;
     try{
       const r=await findCover(a.t);
       if(r){
@@ -1708,7 +1748,8 @@ $("bGo").onclick=async()=>{
   try{await wakeLock?.release()}catch(e){}
   wakeLock=null;
   $("bCancelImp").style.display="none";
-  $("bMsg").textContent=`${bulkCancel?"Cancelado. ":""}✅ Listo: ${added.length} animes procesados${errors?` · ${errors} errores`:""}`;
+  $("bCancelBulk").style.display="none";
+  $("bMsg").textContent=`${bulkCancel?"Cancelado. ":""}✅ Listo: ${added.length} animes procesados${errors?` · ${errors} errores`:""} · ${fmtDur(Date.now()-impT0)}`;
 };
 $("bCancelImp").onclick=()=>{bulkCancel=true;$("bMsg").textContent="Cancelando tras el anime actual…"};
 
@@ -1731,7 +1772,6 @@ $("bCopy").onclick=async()=>{
 };
 $("bDl").onclick=async()=>{
   if(exportFormat==="txt"){
-    try{const d=await claude.use("downloads");if(d){await d.save({filename:"mi-lista-anime.txt",data:$("expTx").value});$("eMsg").textContent="Listo.";return}}catch(e){if(e&&e.code==="cancelled")return}
     try{
       const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([$("expTx").value],{type:"text/plain"}));
       a.download="mi-lista-anime.txt";document.body.appendChild(a);a.click();a.remove();
