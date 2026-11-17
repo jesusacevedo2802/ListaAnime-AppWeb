@@ -1,5 +1,6 @@
 {
   "name": "ListAnime",
+  "id": "./",
   "short_name": "ListAnime",
   "description": "Tu lista personal de anime",
   "start_url": "./",

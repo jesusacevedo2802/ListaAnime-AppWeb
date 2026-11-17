@@ -128,6 +128,7 @@ textarea{min-height:140px}
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MiAnime">
 <link rel="apple-touch-icon" href="icon-192.png">
+<script>if(location.protocol.startsWith("http")&&"serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").then(()=>console.log("✅ PWA: service worker registrado")).catch(e=>console.warn("⚠️ PWA: no se pudo registrar sw.js",e))}</script>
 </head>
 <body>
 <div class="search-overlay" id="searchOverlay">
@@ -1804,9 +1805,7 @@ $("bDl").onclick=async()=>{
     }
   }
 };
-if(location.protocol.startsWith("http")&&"serviceWorker" in navigator){
-  navigator.serviceWorker.register("sw.js").then(()=>console.log("✅ PWA: service worker registrado")).catch(e=>console.warn("⚠️ PWA: no se pudo registrar sw.js",e));
-}
+
 console.log("🚀 Aplicación cargada. Sistema de logs activo.");
 console.log("ℹ️ Abre un anime y haz clic en 'Buscar Datos' para ver los logs.");
 console.log("ℹ️ O haz clic en 'Buscar portadas para todos' para ver el proceso masivo.");
