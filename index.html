@@ -207,7 +207,10 @@ textarea{min-height:140px}
 <div class="ov" id="ovForm"><div class="sheet">
   <h2 id="fTitle">Nuevo anime</h2>
   <div class="row" style="align-items:flex-start">
-    <div class="prev" id="prev"></div>
+    <div style="flex:none;display:flex;flex-direction:column;align-items:flex-start;gap:4px">
+      <div class="prev" id="prev"></div>
+      <div id="yearInfo" style="display:none;font-size:12px;color:var(--mu)"></div>
+    </div>
     <div style="flex:1">
       <div class="autocomplete">
         <input id="fName" placeholder="Nombre del anime" autocomplete="off">
@@ -273,8 +276,8 @@ const CATS=["Acción","Aventura","Comedia","Drama","Fantasía","Romance","Cienci
 const STS=["Visto","Viendo"];
 const GMAP={Action:"Acción",Adventure:"Aventura",Comedy:"Comedia",Drama:"Drama",Fantasy:"Fantasía",Romance:"Romance","Sci-Fi":"Ciencia ficción",Horror:"Terror","Slice of Life":"Slice of life",Sports:"Deportes",Mystery:"Misterio",Supernatural:"Fantasía",Thriller:"Misterio","Psychological":"Drama","Mecha":"Ciencia ficción",Music:"Romance",Isekai:"Isekai","Science Fiction":"Ciencia ficción","School":"Slice of life","Slice of Life":"Slice of life","Suspense":"Misterio","Super Power":"Acción","Seinen":"Drama","Shoujo":"Romance","Shounen":"Acción","Kids":"Aventura"};
 const $=id=>document.getElementById(id);
-let items=[],st=STS.includes(localStorage.getItem("anime-st"))?localStorage.getItem("anime-st"):"Visto",catSel=new Set(),editId=null,cover=null,coverManual=false,episodesFound=null,categoriesFound=null,seasonsFound=null,selSeasonId=null,sortMode="az",bulkCancel=false;
-let airingFound=false,lastAirFound=false,seasonsPartialFound=false,lastSeasonsPartial=false;
+let items=[],st=STS.includes(localStorage.getItem("anime-st"))?localStorage.getItem("anime-st"):"Visto",catSel=new Set(),editId=null,cover=null,coverManual=false,episodesFound=null,categoriesFound=null,seasonsFound=null,selSeasonId=null,sortMode="az",bulkCancel=false,yearFound=null,malFound=null;
+let airingFound=false,lastAirFound=false,lastYearFound=null,lastMalId=null,seasonsPartialFound=false,lastSeasonsPartial=false;
 try{items=JSON.parse(localStorage.getItem("anime-list")||"[]")}catch(e){}
 const save=()=>{try{localStorage.setItem("anime-list",JSON.stringify(items))}catch(e){appAlert("No se pudo guardar (almacenamiento lleno).")}
   items.forEach(i=>{if(i.cv)cacheCover(i.cv)})};
@@ -554,8 +557,7 @@ document.addEventListener("keydown",e=>{
 });
 function prev(){const t=$("fName").value||"?";$("prev").style.cssText=bg(t,curCover());$("prev").textContent=cover?"":t[0].toUpperCase()}
 $("fName").oninput=prev;
-const isFormMovie=()=>{const i=editId!=null?items.find(x=>x.id===editId):null;const ep=episodesFound!=null?episodesFound:(i?i.episodes:null);return ep==="1"||ep===1};
-$("prev").onclick=()=>{if(cover){$("lbImg").src=curCover();$("lbCovers").style.display=isFormMovie()?"none":"";open("ovCover")}};
+$("prev").onclick=()=>{if(cover){$("lbImg").src=curCover();open("ovCover")}};
 $("ovCover").onclick=()=>close("ovCover");
 $("seasonsInfo").addEventListener("click",async e=>{
   const moreBtn=e.target.closest(".seas-more");
@@ -587,6 +589,9 @@ $("seasonsInfo").addEventListener("click",async e=>{
     const tr=syn?await translateToSpanish(syn):null;
     const cats=mapGenresToCategories((info.genres||[]).map(g=>g.name));
     selSeasonId=malId;
+    const yInfo=info.aired&&info.aired.prop&&info.aired.prop.from?info.aired.prop.from.year:null;
+    const soFound=(seasonsFound||[]).find(x=>String(x.mal_id)===String(malId));if(soFound&&yInfo)soFound.year=yInfo;
+    syncYearUI();
     if(img&&(!(cover&&coverManual)||await appConfirm("Ya tienes una portada personal. ¿Reemplazarla con la de esta temporada?"))){
       cover=img;coverManual=false;prev();
     }
@@ -659,6 +664,12 @@ function syncEpUI(){
   el.style.display="block";
   el.textContent=airingFound?(tot>1?"📺 En emisión · "+tot+" episodios":"📺 En emisión"):"";
 }
+function syncYearUI(){
+  const el=$("yearInfo");if(!el)return;
+  let y=null;if(selSeasonId&&seasonsFound){const s=seasonsFound.find(x=>String(x.mal_id)===String(selSeasonId));if(s&&s.year)y=s.year}
+  if(!y)y=yearFound;
+  el.style.display=y?"":"none";el.textContent=y||"";
+}
 function openForm(id){
   editId=id;const i=items.find(x=>x.id===id);
   $("fTitle").textContent=i?"Detalles del Anime":"Nuevo anime";
@@ -666,11 +677,11 @@ function openForm(id){
   $("fStTabs").querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.st===$("fSt").value));
   $("fDesc").value=i?i.desc||"":"";
   cover=i?i.cv:null;coverManual=i?i.cvManual||false:false;$("bDel").style.display=i?"":"none";$("fMsg").textContent="";
-  episodesFound=null;categoriesFound=null;seasonsFound=null;airingFound=false;lastAirFound=false;seasonsPartialFound=false;
+  yearFound=null;malFound=null;episodesFound=null;categoriesFound=null;seasonsFound=null;airingFound=false;lastAirFound=false;seasonsPartialFound=false;
   if(i&&i.episodes)episodesFound=i.episodes;
   if(i&&i.cats)categoriesFound=i.cats;
   if(i&&i.seasons){seasonsFound=i.seasons;seasonsPartialFound=!!i.seasonsPartial}
-  if(i&&i.air)airingFound=true;
+  if(i&&i.air)airingFound=true;if(i&&i.year)yearFound=i.year;if(i&&i.mal)malFound=i.mal;
   selSeasonId=i?(i.sel||null):null;
   const seasonsInfo=$("seasonsInfo");
   const isSingleMovie=i&&(i.episodes==="1"||i.episodes===1);
@@ -683,6 +694,7 @@ function openForm(id){
   }
   markSeasonSel();
   syncEpUI();
+  syncYearUI();
   prev();open("ovForm");
 }
 $("fab").onclick=()=>openForm(null);
@@ -1019,7 +1031,7 @@ async function findDescription(title){
 }
 
 async function findEpisodes(title){
-  lastAirFound=false;
+  lastAirFound=false;lastYearFound=null;lastMalId=null;
   try{
     const normalized=normalizeTitle(title);
     const expanded=ABBREVIATIONS[normalized]||title;
@@ -1040,7 +1052,7 @@ async function findEpisodes(title){
     }
     if(!best||bestScore<0.3)return null;
     const episodes=best.episodes||0;
-    lastAirFound=best.status==="Currently Airing";
+    lastMalId=best.mal_id||null;lastAirFound=best.status==="Currently Airing";lastYearFound=(best.aired&&best.aired.prop&&best.aired.prop.from&&best.aired.prop.from.year)||null;
     console.log("📺 Episodios:", title, "->", best.title, "| Cantidad:", episodes, "| Estado:", best.status||"?");
     return episodes>0?episodes.toString():null;
   }catch(e){
@@ -1050,7 +1062,7 @@ async function findEpisodes(title){
 }
 
 async function findSeasons(title){
-  lastSeasonsPartial=false;
+  lastSeasonsPartial=false;lastMalId=null;
   try{
     const normalized=normalizeTitle(title);
     const expanded=ABBREVIATIONS[normalized]||title;
@@ -1076,7 +1088,7 @@ async function findSeasons(title){
     
     console.log("✅ Anime encontrado:", best.title, "(MAL ID:", best.mal_id, ", score:", bestScore, ")");
     
-    const malId=best.mal_id;
+    const malId=best.mal_id; lastMalId=malId||null;
     if(!malId){
       console.log("⚠️ No MAL ID encontrado para:", title);
       return null;
@@ -1192,7 +1204,8 @@ async function findSeasons(title){
                     type:seasonInfo.type||"",
                     main:isMain&&rel.relation!=="Other",
                     air:seasonInfo.status==="Currently Airing",
-                    cv:(seasonInfo.images&&seasonInfo.images.jpg&&seasonInfo.images.jpg.large_image_url)||""
+                    cv:(seasonInfo.images&&seasonInfo.images.jpg&&seasonInfo.images.jpg.large_image_url)||"",
+                    year:(seasonInfo.aired&&seasonInfo.aired.prop&&seasonInfo.aired.prop.from&&seasonInfo.aired.prop.from.year)||null
                   };
                   const isAltVersion=(rel.relation==="Alternative"||rel.relation==="Alternative Version")&&seasonInfo.type==="TV"&&(!seasonInfo.episodes||seasonInfo.episodes>1);
                   if(isAltVersion){
@@ -1268,7 +1281,7 @@ async function findCoverAniList(title){
   try{
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),15000);
-    const query=`query($search:String){Page(perPage:5){media(search:$search,type:ANIME){coverImage{large}title{romaji english native}genres}}}`;
+    const query=`query($search:String){Page(perPage:5){media(search:$search,type:ANIME){coverImage{large}title{romaji english native}genres startDate{year}}}}`;
     const r=await fetch("https://graphql.anilist.co",{
       method:"POST",
       headers:{"Content-Type":"application/json","Accept":"application/json"},
@@ -1294,7 +1307,7 @@ async function findCoverAniList(title){
     const imgUrl=best.coverImage.large;
     const cats=mapGenresToCategories(best.genres||[]);
     console.log("🖼️ Portada AniList:", title, "->", best.title.english||best.title.romaji, "| Categorías:", cats.join(", "));
-    return {cv:imgUrl,cats,name:best.title.english||best.title.romaji};
+    return {cv:imgUrl,cats,name:best.title.english||best.title.romaji,year:best.startDate?best.startDate.year:null};
   }catch(e){console.error("AniList error:",e);return null}
 }
 
@@ -1328,7 +1341,7 @@ async function findCoverJikan(title){
       seasons=await findSeasons(title);
     }
     console.log("🖼️ Portada Tenrai:", title, "->", best.title, "| Categorías:", cats.join(", "), "| Episodios:", episodes, "| Temporadas:", seasons?seasons.length:"N/A", "| Estado:", best.status||"?");
-    return {cv:imgUrl,cats,name:best.title_english||best.title,episodes:episodes>0?episodes.toString():null,seasons,air:best.status==="Currently Airing",synopsis:best.synopsis||""};
+    return {cv:imgUrl,cats,name:best.title_english||best.title,episodes:episodes>0?episodes.toString():null,seasons,air:best.status==="Currently Airing",synopsis:best.synopsis||"",year:(best.aired&&best.aired.prop&&best.aired.prop.from&&best.aired.prop.from.year)||null,mal:best.mal_id||null};
   }catch(e){return null}
 }
 
@@ -1358,24 +1371,24 @@ async function findCoverKitsu(title){
     const imgUrl=best.attributes.posterImage.large;
     const cats=mapGenresToCategories(best.attributes.categories||[]);
     console.log("🖼️ Portada Kitsu:", title, "->", best.attributes.titles.en_jp||best.attributes.canonicalTitle, "| Categorías:", cats.join(", "));
-    return {cv:imgUrl,cats,name:best.attributes.titles.en_jp||best.attributes.canonicalTitle};
+    return {cv:imgUrl,cats,name:best.attributes.titles.en_jp||best.attributes.canonicalTitle,year:best.attributes.startDate?parseInt(best.attributes.startDate):null};
   }catch(e){return null}
 }
 
 async function findCover(title){
-  lastAirFound=false;
+  lastAirFound=false;lastYearFound=null;lastMalId=null;
   const normalized=normalizeTitle(title);
   const expanded=ABBREVIATIONS[normalized]||title;
   const searches=[expanded,expanded+" anime",expanded.replace(/ /g,""),title,title+" anime",title.replace(/ /g,"")];
   for(const s of searches){
     let r=await findCoverJikan(s);
-    if(r&&r.cv){lastAirFound=!!r.air;return r}
+    if(r&&r.cv){lastAirFound=!!r.air;lastYearFound=r.year||null;lastMalId=r.mal||null;return r}
     await new Promise(r=>setTimeout(r,500));
     r=await findCoverAniList(s);
-    if(r&&r.cv){lastAirFound=!!r.air;return r}
+    if(r&&r.cv){lastAirFound=!!r.air;lastYearFound=r.year||null;lastMalId=r.mal||null;return r}
     await new Promise(r=>setTimeout(r,500));
     r=await findCoverKitsu(s);
-    if(r&&r.cv){lastAirFound=!!r.air;return r}
+    if(r&&r.cv){lastAirFound=!!r.air;lastYearFound=r.year||null;lastMalId=r.mal||null;return r}
     await new Promise(r=>setTimeout(r,500));
   }
   return null;
@@ -1388,12 +1401,12 @@ $("bFind").onclick=async()=>{
   console.log("🔍 Búsqueda manual iniciada:", t);
   const bf=$("bFind"),bfTxt=bf.textContent;
   bf.classList.add("loading");bf.textContent="⏳ Buscando…";
-  episodesFound=null;categoriesFound=null;seasonsFound=null;airingFound=false;
+  yearFound=null;malFound=null;episodesFound=null;categoriesFound=null;seasonsFound=null;airingFound=false;
   let foundAny=false;
   const r=await findCover(t);
   if(r&&r.cv){
     foundAny=true;
-    cover=r.cv;coverManual=false;if(r.cats)categoriesFound=r.cats;if(r.episodes)episodesFound=r.episodes;if(r.seasons){seasonsFound=r.seasons;seasonsPartialFound=lastSeasonsPartial};prev();
+    cover=r.cv;coverManual=false;if(r.cats)categoriesFound=r.cats;if(r.episodes)episodesFound=r.episodes;if(r.seasons){seasonsFound=r.seasons;seasonsPartialFound=lastSeasonsPartial};if(r.year)yearFound=r.year;if(r.mal)malFound=r.mal;prev();
     console.log("✅ Portada manual actualizada:", t, "->", r.name, "| Categorías:", r.cats?r.cats.join(", "):"N/A", "| Episodios:", r.episodes||"N/A", "| Temporadas:", r.seasons?r.seasons.length:"N/A");
     const seasonsInfo=$("seasonsInfo");
     if(r.seasons&&r.seasons.length>0&&episodesFound!=="1"&&episodesFound!==1){
@@ -1449,8 +1462,10 @@ $("bFind").onclick=async()=>{
   }else{
     $("fMsg").textContent="No se encontró información para este anime.";
   }
+  if(lastMalId)malFound=lastMalId;
   airingFound=lastAirFound;
   syncEpUI();
+  syncYearUI();
   bf.classList.remove("loading");bf.textContent=bfTxt;
 };
 $("bUp").onclick=()=>$("file").click();
@@ -1468,10 +1483,41 @@ $("file").onchange=e=>{
   r.readAsDataURL(f);
 };
 const seasonCoverList=()=>{const ss=seasonsFound||[];return[...ss.filter(isMainSeason),...ss.filter(s=>!isMainSeason(s))]};
+const picsCache={};let pickerPics=[];let pickerSeq=0;
+async function resolvePickerMal(){
+  if(selSeasonId&&seasonsFound){const s=seasonsFound.find(x=>String(x.mal_id)===String(selSeasonId));if(s&&s.mal_id)return s.mal_id}
+  let m=malFound||(editId!=null?(items.find(x=>x.id===editId)||{}).mal:null);
+  if(m)return m;
+  const t=$("fName").value.trim();if(!t||!navigator.onLine)return null;
+  try{
+    const normalized=normalizeTitle(t),expanded=ABBREVIATIONS[normalized]||t;
+    const r=await fetchWithRetry("https://api.tenrai.org/v1/anime?limit=5&q="+encodeURIComponent(expanded));
+    if(!r||!r.ok)return null;
+    const list=(await r.json()).data||[];let best=null,bs=0;
+    for(const a of list){if(!a)continue;const s=Math.max(similarity(expanded,a.title_english||""),similarity(expanded,a.title||""),similarity(expanded,a.title_japanese||""));if(s>bs){bs=s;best=a}}
+    if(best&&bs>=0.3){malFound=best.mal_id||null;lastMalId=best.mal_id||null;return best.mal_id||null}
+  }catch(e){}
+  return null;
+}
+async function loadPickerPictures(){
+  const seq=++pickerSeq;const mal=await resolvePickerMal();if(seq!==pickerSeq)return;
+  pickerPics=[];
+  if(mal){
+    if(picsCache[mal])pickerPics=picsCache[mal];
+    else{
+      try{
+        const r=await fetchWithRetry("https://api.tenrai.org/v1/anime/"+mal+"/pictures");
+        if(r&&r.ok){const arr=(await r.json()).data||[];picsCache[mal]=arr.map(p=>p&&p.jpg&&p.jpg.large_image_url).filter(Boolean);if(seq===pickerSeq)pickerPics=picsCache[mal]}
+      }catch(e){}
+    }
+  }
+  $("cvMsg").textContent=pickerPics.length?"":"Sin pósters oficiales encontrados para este anime.";
+  if(seq!==pickerSeq)return;paintCoverGrid();
+}
 function paintCoverGrid(){
   const grid=$("covGrid");if(!grid)return;
   const tiles=[];
-  seasonCoverList().forEach(s=>{if(s.cv||s.mal_id)tiles.push({k:"s:"+(s.mal_id||s.name),label:s.name,img:s.cv?coverCache[s.cv]||s.cv:null,season:s,sel:s.cv&&s.cv===cover})});
+  pickerPics.forEach((img,i)=>{if(img)tiles.push({k:"p:"+i,label:"Póster "+(i+1),img,sel:img===cover})});
   grid.innerHTML=tiles.map(t=>{
     let inner;
     if(t.img){if(/^https?:/i.test(t.img))cacheCover(t.img);inner=`<img loading="lazy" src="${esc(t.img)}" alt="">`}
@@ -1481,26 +1527,19 @@ function paintCoverGrid(){
   }).join("");
   const sh=document.querySelector("#ovCovers .sheet");if(sh){let t=0;const m=()=>{sh.style.height="auto";const need=sh.scrollHeight;sh.style.height="";if(need>0||++t>20)$("ovCovers").classList.toggle("full",need>window.innerHeight*0.92);else setTimeout(m,50)};m()}
 }
-async function loadCoverPickerCovers(){
-  if(!navigator.onLine)return;
-  const missing=seasonCoverList().filter(s=>s.mal_id&&!s.cv);
-  let idx=0;
-  const worker=async()=>{while(idx<missing.length){const s=missing[idx++];try{const r=await fetchWithRetry("https://api.tenrai.org/v1/anime/"+s.mal_id);if(r&&r.ok){const info=(await r.json()).data;const img=info&&info.images&&info.images.jpg&&info.images.jpg.large_image_url;if(img){s.cv=img;cacheCover(img)}}}catch(e){}paintCoverGrid()}};
-  await Promise.all([worker(),worker(),worker()]);
-}
 function openCoverPicker(){
-  open("ovCovers");
-  $("cvMsg").textContent=seasonCoverList().length?"":"Sin temporadas cargadas — usa «Buscar Datos» para encontrarlas.";
-  paintCoverGrid();
-  loadCoverPickerCovers();
+  open("ovCovers");$("ovCovers").classList.remove("full");
+  $("cvMsg").textContent="Cargando pósters…";
+  pickerPics=[];paintCoverGrid();
+  loadPickerPictures();
 }
 $("lbCovers").onclick=e=>{e.stopPropagation();close("ovCover");openCoverPicker()};
 $("covGrid").onclick=e=>{
   const t=e.target.closest(".covpick");if(!t)return;
   const k=t.dataset.k;
   const showBig=()=>{const c=curCover();if(c){$("lbImg").src=c;open("ovCover")}};
-  const s=seasonCoverList().find(x=>"s:"+(x.mal_id||x.name)===k);
-  if(s){if(s.cv){cover=s.cv;coverManual=false;prev();close("ovCovers");showBig()}else $("cvMsg").textContent="Esa portada aún se está cargando…"}
+  const m=k.match(/^p:(\d+)$/);
+  if(m){const img=pickerPics[+m[1]];if(img){cover=img;coverManual=false;prev();close("ovCovers");showBig()}}
 };
 
 function isValidAnimeName(name){
@@ -1530,7 +1569,8 @@ async function fetchAllCovers(){
   try{wakeLock=await navigator.wakeLock.request("screen")}catch(e){}
   $("bCancelBulk").style.display="";
   const onlyMissing=$("chkMissing").checked;
-  const complete=a=>a.cv&&a.desc&&a.episodes&&!a.seasonsPartial&&(a.seasons&&a.seasons.length||a.episodes==="1"||a.episodes===1);
+  const complete=a=>a.cv&&a.desc&&a.episodes&&(a.year||a.yearTried)&&!a.seasonsPartial&&(a.seasons&&a.seasons.length||a.episodes==="1"||a.episodes===1);
+  const completeNoYear=a=>a.cv&&a.desc&&a.episodes&&!a.seasonsPartial&&(a.seasons&&a.seasons.length||a.episodes==="1"||a.episodes===1);
   const isFallbackCover=a=>{const c=a.cv||"";return !a.cvManual&&/^https?:\/\//.test(c)&&!/myanimelist\.net/i.test(c)};
   let ok=0,skipped=0,doneSkip=0,descOk=0,epOk=0,seasonOk=0,errors=0,done=0,errStreak=0,next=0;
   const workTotal=todo.filter(a=>isValidAnimeName(a.t)&&!(onlyMissing&&complete(a)&&!isFallbackCover(a))).length;
@@ -1544,6 +1584,11 @@ async function fetchAllCovers(){
       if(!isValidAnimeName(a.t)){skipped++;done++;updateMsg();continue}
       if(onlyMissing&&complete(a)&&!isFallbackCover(a)){doneSkip++;done++;updateMsg();continue}
       const coverOnly=onlyMissing&&complete(a)&&isFallbackCover(a);
+      if(onlyMissing&&completeNoYear(a)&&!a.year&&!a.yearTried&&!isFallbackCover(a)){
+        updateMsg(a);const w0=Date.now();
+        try{await findEpisodes(a.t);if(lastYearFound){a.year=lastYearFound;console.log("Año:",a.t,"->",lastYearFound)}a.yearTried=true;save();scheduleBulkRender()}catch(e){}
+        done++;errStreak=0;await new Promise(r=>setTimeout(r,700));procMs+=Date.now()-w0;procN++;continue;
+      }
       updateMsg(a);const w0=Date.now();
       try{
         const r=await findCover(a.t);
@@ -1564,7 +1609,7 @@ async function fetchAllCovers(){
             a.seasonsPartial=lastSeasonsPartial;
             seasonOk++;
           }
-          if(r.air!==undefined)a.air=!!r.air;
+          if(r.air!==undefined)a.air=!!r.air;if(r.year)a.year=r.year;if(r.mal)a.mal=r.mal;
           save();scheduleBulkRender();
         }
         if(!coverOnly){
@@ -1576,14 +1621,11 @@ async function fetchAllCovers(){
             save();scheduleBulkRender();
           }
         }
-        if(!a.episodes){
+        if(!a.episodes||!a.year){
           const episodes=await findEpisodes(a.t);
-          if(episodes){
-            a.episodes=episodes;
-            a.air=lastAirFound;
-            epOk++;
-            save();scheduleBulkRender();
-          }
+          if(lastYearFound&&!a.year)a.year=lastYearFound;if(lastMalId&&!a.mal)a.mal=lastMalId;
+          if(episodes&&!a.episodes){a.episodes=episodes;a.air=lastAirFound;epOk++}
+          if(episodes||lastYearFound){save();scheduleBulkRender()}
         }
         if(!a.seasons){
           const seasons=await findSeasons(a.t);
@@ -1594,6 +1636,7 @@ async function fetchAllCovers(){
             save();scheduleBulkRender();
           }
         }
+        if(lastMalId&&!a.mal){a.mal=lastMalId;save();scheduleBulkRender()}
         errStreak=0;
       }catch(e){
         console.error("Error buscando",a.t,":",e);
@@ -1649,8 +1692,9 @@ $("bSave").onclick=async()=>{
       console.log("✅ Temporadas automáticas encontradas:", s.length);
     }
   }
+  if(!editId&&!yearFound&&!lastYearFound){console.log("Buscando año automaticamente para nuevo anime:",t);await findEpisodes(t)}
   if(!editId)airingFound=lastAirFound;
-  const o={t,cats,st:$("fSt").value,cv:cover,cvManual:coverManual,desc,episodes,seasons,seasonsPartial:!!seasonsPartialFound,sel:selSeasonId,air:airingFound||false};
+  const o={t,cats,st:$("fSt").value,cv:cover,cvManual:coverManual,desc,episodes,seasons,seasonsPartial:!!seasonsPartialFound,sel:selSeasonId,air:airingFound||false,year:editId?yearFound:(lastYearFound||yearFound||null),mal:editId?malFound:(lastMalId||malFound||null)};
   if(editId){
     console.log("💾 Guardando cambios de anime:", t);
     console.log("   - Categorías:", cats.join(", "));
@@ -1786,15 +1830,16 @@ $("bGo").onclick=async()=>{
         if(r.cv){a.cv=r.cv;a.cvManual=false;ok++}
         if(r.cats&&r.cats.length>0)a.cats=r.cats;
         if(r.episodes){a.episodes=r.episodes;epOk++}
-        if(r.air!==undefined)a.air=!!r.air;
+        if(r.air!==undefined)a.air=!!r.air;if(r.year)a.year=r.year;if(r.mal)a.mal=r.mal;
         if(r.seasons){a.seasons=r.seasons;a.seasonsPartial=lastSeasonsPartial;seasonOk++}
       }
       let desc=null;
       if(r&&r.synopsis)desc=await translateToSpanish(r.synopsis);
       if(!desc)desc=await findDescription(a.t);
       if(desc){a.desc=desc;descOk++}
-      if(!a.episodes){const ep=await findEpisodes(a.t);if(ep){a.episodes=ep;epOk++}}
+      if(!a.episodes||!a.year){const ep=await findEpisodes(a.t);if(ep&&!a.episodes){a.episodes=ep;epOk++}if(lastYearFound&&!a.year)a.year=lastYearFound}
       if(!a.seasons){const s=await findSeasons(a.t);if(s){a.seasons=s;a.seasonsPartial=lastSeasonsPartial;seasonOk++}}
+      if(lastMalId&&!a.mal)a.mal=lastMalId;
       save();scheduleBulkRender();
     }catch(e){
       console.error("Error importando",a.t,":",e);
@@ -1927,3 +1972,4 @@ idbOpen().then(async db=>{
 </script>
 </body>
 </html>
+
