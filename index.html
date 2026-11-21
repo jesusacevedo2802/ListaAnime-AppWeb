@@ -137,7 +137,7 @@ textarea{min-height:140px}
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MiAnime">
 <link rel="apple-touch-icon" href="icon-192.png">
-<script>if(location.protocol.startsWith("http")&&"serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").then(()=>console.log("✅ PWA: service worker registrado")).catch(e=>console.warn("⚠️ PWA: no se pudo registrar sw.js",e))}</script>
+<script>if(location.protocol.startsWith("http")&&"serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").then(()=>0&&console.log("✅ PWA: service worker registrado")).catch(e=>0&&console.warn("⚠️ PWA: no se pudo registrar sw.js",e))}</script>
 </head>
 <body>
 <div class="search-overlay" id="searchOverlay">
@@ -584,7 +584,9 @@ $("seasonsInfo").addEventListener("click",async e=>{
     if(!r||!r.ok)throw new Error("sin respuesta");
     const info=(await r.json()).data;
     if(!info)throw new Error("sin datos");
-    const img=info.images&&info.images.jpg&&info.images.jpg.large_image_url;
+    let img=info.images&&info.images.jpg&&info.images.jpg.large_image_url;
+    const sh=await findCoverShikimori(li.dataset.name||info.title||"",malId);
+    if(sh&&sh.cv)img=sh.cv;
     const syn=info.synopsis||"";
     const tr=syn?await translateToSpanish(syn):null;
     const cats=mapGenresToCategories((info.genres||[]).map(g=>g.name));
@@ -909,7 +911,7 @@ function postProcessTranslation(text){
 async function translateWithRetry(text, retries=3, delay=2000){
   for(let i=0;i<retries;i++){
     try{
-      console.log(`🌐 Traduciendo intento ${i+1}/${retries}...`);
+      0&&console.log(`🌐 Traduciendo intento ${i+1}/${retries}...`);
       const r=await fetch("https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=es&dt=t&q="+encodeURIComponent(text));
       if(r.ok){
         const result=await r.json();
@@ -924,7 +926,7 @@ async function translateWithRetry(text, retries=3, delay=2000){
         }
       }else if(r.status===429){
         const waitTime=delay*(i+1);
-        console.log(`⏳ Rate limit detectado, esperando ${waitTime}ms...`);
+        0&&console.log(`⏳ Rate limit detectado, esperando ${waitTime}ms...`);
         await new Promise(r=>setTimeout(r,waitTime));
         continue;
       }
@@ -940,21 +942,21 @@ async function translateWithRetry(text, retries=3, delay=2000){
 async function translateToSpanish(text){
   if(!text)return"";
   if(text.length<10)return text;
-  console.log("🌐 Traduciendo texto (", text.length, "caracteres) al español...");
+  0&&console.log("🌐 Traduciendo texto (", text.length, "caracteres) al español...");
   try{
     const translated=await translateWithRetry(text);
     if(translated){
       const corrected=postProcessTranslation(translated);
       if(corrected!==translated){
-        console.log("🔧 Correcciones post-traducción aplicadas");
+        0&&console.log("🔧 Correcciones post-traducción aplicadas");
       }
-      console.log("✅ Traducción completada (", corrected.length, "caracteres)");
+      0&&console.log("✅ Traducción completada (", corrected.length, "caracteres)");
       return corrected;
     }
   }catch(e){
     console.error("❌ Error en traducción:", e);
   }
-  console.log("⚠️ Traducción falló, se conserva la descripción existente");
+  0&&console.log("⚠️ Traducción falló, se conserva la descripción existente");
   return null;
 }
 
@@ -966,28 +968,28 @@ async function fetchWithRetry(url, retries=3, delay=1000){
       const r=await fetch(url,{signal:controller.signal});
       clearTimeout(timeout);
       if(r.ok){
-        if(i>0)console.log("✅ Reintento exitoso (intento", i+1, "):", url.substring(0,80));
+        if(i>0)0&&console.log("✅ Reintento exitoso (intento", i+1, "):", url.substring(0,80));
         return r;
       }
       if(r.status===429){
         const retryAfter=r.headers.get("Retry-After");
         const waitTime=retryAfter?parseInt(retryAfter)*1000:delay;
-        console.log("⏳ 429 en", url.substring(0,80), "- reintento", i+1+"/"+retries, "- esperando", waitTime+"ms");
+        0&&console.log("⏳ 429 en", url.substring(0,80), "- reintento", i+1+"/"+retries, "- esperando", waitTime+"ms");
         await new Promise(r=>setTimeout(r,waitTime));
         continue;
       }
-      console.log("❌ Error HTTP", r.status, "en", url.substring(0,80));
+      0&&console.log("❌ Error HTTP", r.status, "en", url.substring(0,80));
       return null;
     }catch(e){
       if(i===retries-1){
-        console.log("❌ Falló después de", retries, "intentos:", url.substring(0,80), "-", e.message);
+        0&&console.log("❌ Falló después de", retries, "intentos:", url.substring(0,80), "-", e.message);
         throw e;
       }
-      console.log("⚠️ Error de red en", url.substring(0,80), "- reintentando...");
+      0&&console.log("⚠️ Error de red en", url.substring(0,80), "- reintentando...");
       await new Promise(r=>setTimeout(r,delay));
     }
   }
-  console.log("❌ Se agotaron los reintentos, se devuelve null:", url.substring(0,80));
+  0&&console.log("❌ Se agotaron los reintentos, se devuelve null:", url.substring(0,80));
   return null;
 }
 
@@ -1012,15 +1014,15 @@ async function findDescription(title){
     }
     if(!best||bestScore<0.3)return null;
     const synopsis=best.synopsis||"";
-    console.log("📄 Sinopsis original (", synopsis.length, "caracteres):", synopsis.substring(0, 200)+"...");
+    0&&console.log("📄 Sinopsis original (", synopsis.length, "caracteres):", synopsis.substring(0, 200)+"...");
     if(synopsis){
       const translated=await translateToSpanish(synopsis);
       if(!translated){
-        console.log("⚠️ Traducción falló para:", title, "- se conserva descripción existente");
+        0&&console.log("⚠️ Traducción falló para:", title, "- se conserva descripción existente");
         return null;
       }
-      console.log("📝 Texto traducido (", translated.length, "caracteres):", translated.substring(0, 200)+"...");
-      console.log("✅ Descripción:", title, "->", best.title);
+      0&&console.log("📝 Texto traducido (", translated.length, "caracteres):", translated.substring(0, 200)+"...");
+      0&&console.log("✅ Descripción:", title, "->", best.title);
       return translated;
     }
     return "";
@@ -1053,7 +1055,7 @@ async function findEpisodes(title){
     if(!best||bestScore<0.3)return null;
     const episodes=best.episodes||0;
     lastMalId=best.mal_id||null;lastAirFound=best.status==="Currently Airing";lastYearFound=(best.aired&&best.aired.prop&&best.aired.prop.from&&best.aired.prop.from.year)||null;
-    console.log("📺 Episodios:", title, "->", best.title, "| Cantidad:", episodes, "| Estado:", best.status||"?");
+    0&&console.log("📺 Episodios:", title, "->", best.title, "| Cantidad:", episodes, "| Estado:", best.status||"?");
     return episodes>0?episodes.toString():null;
   }catch(e){
     console.error("❌ Error buscando episodios:", title, e.message);
@@ -1126,9 +1128,9 @@ async function findSeasons(title){
           });
           origIsMain=true;
           origScore=mainInfo.score||0;
-          console.log("✅ Temporada original encontrada:", mainInfo.title_english||mainInfo.title, "-", mainInfo.episodes, "episodios");
+          0&&console.log("✅ Temporada original encontrada:", mainInfo.title_english||mainInfo.title, "-", mainInfo.episodes, "episodios");
         }else if(mainInfo&&mainInfo.type!=="TV"&&mainInfo.type!=="ONA"){
-          console.log("    ⏭️ Anime principal no es TV/ONA:", mainInfo.type, "-", mainInfo.title_english||mainInfo.title);
+          0&&console.log("    ⏭️ Anime principal no es TV/ONA:", mainInfo.type, "-", mainInfo.title_english||mainInfo.title);
         }
       }
     }catch(e){
@@ -1157,7 +1159,7 @@ async function findSeasons(title){
           
           const isSeasonRelation=REL_TYPES.includes(rel.relation);
           if(!isSeasonRelation){
-            console.log("    ⏭️ Relación no relevante:", rel.relation);
+            0&&console.log("    ⏭️ Relación no relevante:", rel.relation);
             continue;
           }
           
@@ -1172,18 +1174,18 @@ async function findSeasons(title){
                 const seasonData=await seasonR.json();
                 const seasonInfo=seasonData.data;
                 if(seasonInfo&&(seasonInfo.type==="Music"||seasonInfo.type==="PV"||seasonInfo.type==="CM")){
-                  console.log("    ⏭️ Saltando", seasonInfo.type, ":", entry.name);
+                  0&&console.log("    ⏭️ Saltando", seasonInfo.type, ":", entry.name);
                   continue;
                 }
                 const candNames=[entry.name,seasonInfo.title,seasonInfo.title_english,seasonInfo.title_japanese].filter(Boolean);
                 const titleScore=Math.max(...origTitles.flatMap(o=>candNames.map(c=>similarity(o,c))));
                 if(titleScore<0.25){
-                  console.log("    ⏭️ Título no relacionado:", entry.name, "(score:", titleScore.toFixed(2), ")");
+                  0&&console.log("    ⏭️ Título no relacionado:", entry.name, "(score:", titleScore.toFixed(2), ")");
                   continue;
                 }
                 const franchiseMatch=candNames.some(c=>origFirsts.has(firstTok(c)))||titleScore>=0.5;
                 if(!franchiseMatch&&(seasonInfo.type==="TV"||seasonInfo.type==="ONA")){
-                  console.log("    ⏭️ Serie fuera de franquicia:", entry.name);
+                  0&&console.log("    ⏭️ Serie fuera de franquicia:", entry.name);
                   continue;
                 }
                 if(seasonInfo&&(seasonInfo.episodes||seasonInfo.status==="Currently Airing")){
@@ -1211,13 +1213,13 @@ async function findSeasons(title){
                   if(isAltVersion){
                     const qsim=Math.max(...candNames.map(c=>similarity(expanded,c)));
                     altPool.push({season:seasonObj,score:seasonInfo.score||0,qsim});
-                    console.log("    🔀 Versión alternativa encontrada:", entry.name, "- score:", seasonInfo.score, "- similitud búsqueda:", qsim.toFixed(2));
+                    0&&console.log("    🔀 Versión alternativa encontrada:", entry.name, "- score:", seasonInfo.score, "- similitud búsqueda:", qsim.toFixed(2));
                   }else{
                     seasons.push(seasonObj);
                     if(isMain){
-                      console.log("✅ Temporada encontrada:", entry.name, "-", seasonInfo.episodes, "episodios");
+                      0&&console.log("✅ Temporada encontrada:", entry.name, "-", seasonInfo.episodes, "episodios");
                     }else{
-                      console.log("    ➕ Extra encontrado:", seasonInfo.type||"?", "-", entry.name, "-", seasonInfo.episodes, "episodios");
+                      0&&console.log("    ➕ Extra encontrado:", seasonInfo.type||"?", "-", entry.name, "-", seasonInfo.episodes, "episodios");
                     }
                   }
                 }
@@ -1245,31 +1247,31 @@ async function findSeasons(title){
       const winner=candidates[0];
       for(const c of candidates.slice(1)){
         seasons.push({...c.season,main:false});
-        console.log("    🔀 Versión alternativa en Extras:", c.name, "(score:", c.score||0, ", similitud:", (c.qsim||0).toFixed(2), ")");
+        0&&console.log("    🔀 Versión alternativa en Extras:", c.name, "(score:", c.score||0, ", similitud:", (c.qsim||0).toFixed(2), ")");
       }
       if(origIdx>=0){
         if(winner.season!==seasons[origIdx]){
           seasons[origIdx]=winner.season;
-          console.log("    🔀 Versión elegida:", winner.name, "(score:", winner.score||0, ")");
+          0&&console.log("    🔀 Versión elegida:", winner.name, "(score:", winner.score||0, ")");
         }
       }else{
         seasons.push(winner.season);
-        console.log("    🔀 Versión alternativa agregada:", winner.name);
+        0&&console.log("    🔀 Versión alternativa agregada:", winner.name);
       }
     }
     
     if(seasons.length===0){
-      console.log("ℹ️ No se encontraron temporadas para:", title);
+      0&&console.log("ℹ️ No se encontraron temporadas para:", title);
       return null;
     }
     
     const mains=seasons.filter(isMainSeason);
     const extras=seasons.filter(s=>!isMainSeason(s));
-    console.log("✅ Temporadas encontradas para:", title, "-", mains.length, "temporadas,", extras.length, "extras");
-    console.log("   Temporadas:", mains.map(s=>s.name+" ("+s.episodes+" ep)").join(", ")||"ninguna");
-    if(extras.length)console.log("   Extras:", extras.map(s=>s.name+" ["+(s.type||"?")+"] ("+s.episodes+" ep)").join(", "));
+    0&&console.log("✅ Temporadas encontradas para:", title, "-", mains.length, "temporadas,", extras.length, "extras");
+    0&&console.log("   Temporadas:", mains.map(s=>s.name+" ("+s.episodes+" ep)").join(", ")||"ninguna");
+    if(extras.length)0&&console.log("   Extras:", extras.map(s=>s.name+" ["+(s.type||"?")+"] ("+s.episodes+" ep)").join(", "));
     lastSeasonsPartial=partial;
-    if(partial)console.log("⚠️ Búsqueda de temporadas incompleta (posible rate-limit):", title);
+    if(partial)0&&console.log("⚠️ Búsqueda de temporadas incompleta (posible rate-limit):", title);
     return seasons;
   }catch(e){
     console.error("❌ Error buscando temporadas:", title, e.message);
@@ -1375,6 +1377,37 @@ async function findCoverKitsu(title){
   }catch(e){return null}
 }
 
+async function findCoverShikimori(title,malHint){
+  try{
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),15000);
+    const r=await fetch("https://shikimori.io/api/graphql",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Accept":"application/json"},
+      body:JSON.stringify({query:"query($s:String!){animes(search:$s,limit:5){id name malId english russian poster{originalUrl} airedOn{year}}}",variables:{s:title}}),
+      signal:controller.signal
+    });
+    clearTimeout(timeout);
+    if(!r||!r.ok)return null;
+    const list=((await r.json()).data||{}).animes||[];
+    const hint=malHint!=null&&malHint!==""?String(malHint):null;
+    let best=null,bestScore=0;
+    for(const a of list){
+      if(!a||!a.poster||!a.poster.originalUrl)continue;
+      let score;
+      if(hint&&a.malId!=null&&String(a.malId)===hint)score=2;
+      else score=Math.max(similarity(title,a.name||""),similarity(title,a.english||""),similarity(title,a.russian||""));
+      if(score>bestScore){bestScore=score;best=a}
+    }
+    if(!best||bestScore<0.3){console.log("Shikimori: sin coincidencia para",title);return null}
+    console.log("Portada Shikimori:",title,"->",best.name||best.english||"?","| score:",bestScore.toFixed(2),"| mal:",best.malId||"?");
+    return {cv:best.poster.originalUrl,name:best.name||best.english||null,year:best.airedOn?best.airedOn.year:null,mal:best.malId||null};
+  }catch(e){return null}
+}
+async function applyShikiCover(r,s){
+  if(r&&r.cv){const sh=await findCoverShikimori(s,r.mal||null);if(sh&&sh.cv){r.cv=sh.cv;if(!r.mal&&sh.mal)r.mal=sh.mal;if(!r.year&&sh.year)r.year=sh.year}}
+  return r;
+}
 async function findCover(title){
   lastAirFound=false;lastYearFound=null;lastMalId=null;
   const normalized=normalizeTitle(title);
@@ -1382,12 +1415,15 @@ async function findCover(title){
   const searches=[expanded,expanded+" anime",expanded.replace(/ /g,""),title,title+" anime",title.replace(/ /g,"")];
   for(const s of searches){
     let r=await findCoverJikan(s);
-    if(r&&r.cv){lastAirFound=!!r.air;lastYearFound=r.year||null;lastMalId=r.mal||null;return r}
+    if(r&&r.cv){r=await applyShikiCover(r,s);lastAirFound=!!r.air;lastYearFound=r.year||null;lastMalId=r.mal||null;return r}
     await new Promise(r=>setTimeout(r,500));
     r=await findCoverAniList(s);
-    if(r&&r.cv){lastAirFound=!!r.air;lastYearFound=r.year||null;lastMalId=r.mal||null;return r}
+    if(r&&r.cv){r=await applyShikiCover(r,s);lastAirFound=!!r.air;lastYearFound=r.year||null;lastMalId=r.mal||null;return r}
     await new Promise(r=>setTimeout(r,500));
     r=await findCoverKitsu(s);
+    if(r&&r.cv){r=await applyShikiCover(r,s);lastAirFound=!!r.air;lastYearFound=r.year||null;lastMalId=r.mal||null;return r}
+    await new Promise(r=>setTimeout(r,500));
+    r=await findCoverShikimori(s);
     if(r&&r.cv){lastAirFound=!!r.air;lastYearFound=r.year||null;lastMalId=r.mal||null;return r}
     await new Promise(r=>setTimeout(r,500));
   }
@@ -1396,9 +1432,9 @@ async function findCover(title){
 function shrink(src){return new Promise(res=>{const im=new Image();im.onload=()=>{const w=800,h=Math.round(w*im.height/im.width);const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(im,0,0,w,h);res(c.toDataURL("image/jpeg",.92))};im.onerror=()=>res(null);im.src=src})}
 $("bFind").onclick=async()=>{
   const t=$("fName").value.trim();if(!t)return $("fMsg").textContent="Escribe primero el nombre.";
-  if(!navigator.onLine){$("fMsg").textContent="⚠️ Sin conexión a internet.";console.log("⚠️ Sin conexión, búsqueda omitida");return}
+  if(!navigator.onLine){$("fMsg").textContent="⚠️ Sin conexión a internet.";0&&console.log("⚠️ Sin conexión, búsqueda omitida");return}
   if(cover&&coverManual){if(!await appConfirm("Ya tienes una portada personal. ¿Quieres reemplazarla con la búsqueda automática?"))return}
-  console.log("🔍 Búsqueda manual iniciada:", t);
+  0&&console.log("🔍 Búsqueda manual iniciada:", t);
   const bf=$("bFind"),bfTxt=bf.textContent;
   bf.classList.add("loading");bf.textContent="⏳ Buscando…";
   yearFound=null;malFound=null;episodesFound=null;categoriesFound=null;seasonsFound=null;airingFound=false;
@@ -1425,17 +1461,17 @@ $("bFind").onclick=async()=>{
   if(desc){
     foundAny=true;
     $("fDesc").value=desc;
-    console.log("✅ Descripción manual actualizada:", t);
+    0&&console.log("✅ Descripción manual actualizada:", t);
   }
   else{
-    console.log("❌ Descripción no encontrada:", t);
+    0&&console.log("❌ Descripción no encontrada:", t);
   }
   if(!episodesFound){
     const ep=await findEpisodes(t);
     if(ep){
       foundAny=true;
       episodesFound=ep;
-      console.log("✅ Episodios manuales encontrados:", ep);
+      0&&console.log("✅ Episodios manuales encontrados:", ep);
     }
   }
   if(!seasonsFound){
@@ -1444,7 +1480,7 @@ $("bFind").onclick=async()=>{
       foundAny=true;
       seasonsFound=seasons;
       seasonsPartialFound=lastSeasonsPartial;
-      console.log("✅ Temporadas manuales encontradas:", seasons.length);
+      0&&console.log("✅ Temporadas manuales encontradas:", seasons.length);
       const seasonsInfo=$("seasonsInfo");
       if(seasons.length>0&&episodesFound!=="1"&&episodesFound!==1){
         seasonsInfo.style.display="block";
@@ -1562,7 +1598,7 @@ document.addEventListener("visibilitychange",()=>{
 async function fetchAllCovers(){
   const todo=items;
   if(!todo.length){$("aMsg").textContent="No hay animes.";return}
-  if(!navigator.onLine){$("aMsg").textContent="⚠️ Sin conexión a internet. La búsqueda masiva se canceló.";console.log("⚠️ Sin conexión, búsqueda masiva omitida");return}
+  if(!navigator.onLine){$("aMsg").textContent="⚠️ Sin conexión a internet. La búsqueda masiva se canceló.";0&&console.log("⚠️ Sin conexión, búsqueda masiva omitida");return}
   if(bulkRunning){$("aMsg").textContent="Ya hay una búsqueda en curso.";return}
   bulkCancel=false;
   bulkRunning=true;
@@ -1571,7 +1607,7 @@ async function fetchAllCovers(){
   const onlyMissing=$("chkMissing").checked;
   const complete=a=>a.cv&&a.desc&&a.episodes&&(a.year||a.yearTried)&&!a.seasonsPartial&&(a.seasons&&a.seasons.length||a.episodes==="1"||a.episodes===1);
   const completeNoYear=a=>a.cv&&a.desc&&a.episodes&&!a.seasonsPartial&&(a.seasons&&a.seasons.length||a.episodes==="1"||a.episodes===1);
-  const isFallbackCover=a=>{const c=a.cv||"";return !a.cvManual&&/^https?:\/\//.test(c)&&!/myanimelist\.net/i.test(c)};
+  const isFallbackCover=a=>{const c=a.cv||"";return !a.cvManual&&!a.shikiTried&&/^https?:\/\//.test(c)&&!/shikimori\.(io|one|me|org)/i.test(c)};
   let ok=0,skipped=0,doneSkip=0,descOk=0,epOk=0,seasonOk=0,errors=0,done=0,errStreak=0,next=0;
   const workTotal=todo.filter(a=>isValidAnimeName(a.t)&&!(onlyMissing&&complete(a)&&!isFallbackCover(a))).length;
   let procMs=0,procN=0,bulkT0=Date.now();
@@ -1586,7 +1622,7 @@ async function fetchAllCovers(){
       const coverOnly=onlyMissing&&complete(a)&&isFallbackCover(a);
       if(onlyMissing&&completeNoYear(a)&&!a.year&&!a.yearTried&&!isFallbackCover(a)){
         updateMsg(a);const w0=Date.now();
-        try{await findEpisodes(a.t);if(lastYearFound){a.year=lastYearFound;console.log("Año:",a.t,"->",lastYearFound)}a.yearTried=true;save();scheduleBulkRender()}catch(e){}
+        try{await findEpisodes(a.t);if(lastYearFound){a.year=lastYearFound;0&&console.log("Año:",a.t,"->",lastYearFound)}a.yearTried=true;save();scheduleBulkRender()}catch(e){}
         done++;errStreak=0;await new Promise(r=>setTimeout(r,700));procMs+=Date.now()-w0;procN++;continue;
       }
       updateMsg(a);const w0=Date.now();
@@ -1594,7 +1630,7 @@ async function fetchAllCovers(){
         const r=await findCover(a.t);
         if(r){
           if(r.cv&&!a.cvManual){
-            a.cv=r.cv;
+            a.cv=r.cv;a.shikiTried=true;
             ok++;
           }
           if(r.cats&&r.cats.length>0){
@@ -1617,7 +1653,7 @@ async function fetchAllCovers(){
           if(desc){
             a.desc=desc;
             descOk++;
-            console.log("📝 Descripción actualizada:", a.t);
+            0&&console.log("📝 Descripción actualizada:", a.t);
             save();scheduleBulkRender();
           }
         }
@@ -1667,54 +1703,54 @@ $("bSave").onclick=async()=>{
   let episodes=episodesFound||null;
   let seasons=seasonsFound||null;
   if(!editId&&!desc){
-    console.log("🔍 Buscando descripción automática para nuevo anime:", t);
+    0&&console.log("🔍 Buscando descripción automática para nuevo anime:", t);
     $("fMsg").textContent="Buscando descripción…";
     desc=await findDescription(t);
     if(desc){
       $("fDesc").value=desc;
-      console.log("✅ Descripción automática encontrada:", t);
+      0&&console.log("✅ Descripción automática encontrada:", t);
     }
   }
   if(!editId&&!episodes){
-    console.log("🔍 Buscando episodios automáticamente para nuevo anime:", t);
+    0&&console.log("🔍 Buscando episodios automáticamente para nuevo anime:", t);
     const ep=await findEpisodes(t);
     if(ep){
       episodes=ep;
-      console.log("✅ Episodios automáticos encontrados:", ep);
+      0&&console.log("✅ Episodios automáticos encontrados:", ep);
     }
   }
   if(!editId&&!seasons){
-    console.log("🔍 Buscando temporadas automáticamente para nuevo anime:", t);
+    0&&console.log("🔍 Buscando temporadas automáticamente para nuevo anime:", t);
     const s=await findSeasons(t);
     if(s){
       seasons=s;
       seasonsPartialFound=lastSeasonsPartial;
-      console.log("✅ Temporadas automáticas encontradas:", s.length);
+      0&&console.log("✅ Temporadas automáticas encontradas:", s.length);
     }
   }
-  if(!editId&&!yearFound&&!lastYearFound){console.log("Buscando año automaticamente para nuevo anime:",t);await findEpisodes(t)}
+  if(!editId&&!yearFound&&!lastYearFound){0&&console.log("Buscando año automaticamente para nuevo anime:",t);await findEpisodes(t)}
   if(!editId)airingFound=lastAirFound;
   const o={t,cats,st:$("fSt").value,cv:cover,cvManual:coverManual,desc,episodes,seasons,seasonsPartial:!!seasonsPartialFound,sel:selSeasonId,air:airingFound||false,year:editId?yearFound:(lastYearFound||yearFound||null),mal:editId?malFound:(lastMalId||malFound||null)};
   if(editId){
-    console.log("💾 Guardando cambios de anime:", t);
-    console.log("   - Categorías:", cats.join(", "));
-    console.log("   - Sección:", o.st);
+    0&&console.log("💾 Guardando cambios de anime:", t);
+    0&&console.log("   - Categorías:", cats.join(", "));
+    0&&console.log("   - Sección:", o.st);
     console.log("   - Portada:", o.cv?"Sí":"No", o.cvManual?"(manual)":"(automática)");
-    console.log("   - Descripción:", o.desc?"Sí ("+o.desc.length+" caracteres)":"No");
-    console.log("   - Episodios:", o.episodes||"N/A");
-    console.log("   - Temporadas:", o.seasons?o.seasons.length:"N/A");
+    0&&console.log("   - Descripción:", o.desc?"Sí ("+o.desc.length+" caracteres)":"No");
+    0&&console.log("   - Episodios:", o.episodes||"N/A");
+    0&&console.log("   - Temporadas:", o.seasons?o.seasons.length:"N/A");
     Object.assign(items.find(i=>i.id===editId),o);
-    console.log("✅ Anime actualizado manualmente:", t, "(ID:", editId, ")");
+    0&&console.log("✅ Anime actualizado manualmente:", t, "(ID:", editId, ")");
   }else{
-    console.log("➕ Creando nuevo anime:", t);
-    console.log("   - Categorías:", cats.join(", "));
-    console.log("   - Sección:", o.st);
+    0&&console.log("➕ Creando nuevo anime:", t);
+    0&&console.log("   - Categorías:", cats.join(", "));
+    0&&console.log("   - Sección:", o.st);
     console.log("   - Portada:", o.cv?"Sí":"No", o.cvManual?"(manual)":"(automática)");
-    console.log("   - Descripción:", o.desc?"Sí ("+o.desc.length+" caracteres)":"No");
-    console.log("   - Episodios:", o.episodes||"N/A");
-    console.log("   - Temporadas:", o.seasons?o.seasons.length:"N/A");
+    0&&console.log("   - Descripción:", o.desc?"Sí ("+o.desc.length+" caracteres)":"No");
+    0&&console.log("   - Episodios:", o.episodes||"N/A");
+    0&&console.log("   - Temporadas:", o.seasons?o.seasons.length:"N/A");
     items.push({id:Date.now()+""+Math.random().toString(36).slice(2,5),a:Date.now(),...o});
-    console.log("✅ Nuevo anime creado manualmente:", t);
+    0&&console.log("✅ Nuevo anime creado manualmente:", t);
   }
   save();st=o.st;close("ovForm");render(false);
 };
@@ -1732,7 +1768,7 @@ function cleanExistingDescriptions(){
   });
   if(cleaned>0){
     save();
-    console.log("🧹 Descripciones limpiadas:", cleaned);
+    0&&console.log("🧹 Descripciones limpiadas:", cleaned);
   }
 }
 cleanExistingDescriptions();
@@ -1910,8 +1946,8 @@ $("bDl").onclick=async()=>{
   }
 };
 
-console.log("🚀 Aplicación cargada. Sistema de logs activo.");
-console.log("ℹ️ Abre un anime y haz clic en 'Buscar Datos' para ver los logs.");
+0&&console.log("🚀 Aplicación cargada. Sistema de logs activo.");
+0&&console.log("ℹ️ Abre un anime y haz clic en 'Buscar Datos' para ver los logs.");
 console.log("ℹ️ O haz clic en 'Buscar portadas para todos' para ver el proceso masivo.");
 function migrateCategories(){
   let migrated=0;
@@ -1924,7 +1960,7 @@ function migrateCategories(){
   });
   if(migrated>0){
     save();
-    console.log("🔄 Categorías migradas:", migrated);
+    0&&console.log("🔄 Categorías migradas:", migrated);
   }
 }
 migrateCategories();
@@ -1938,7 +1974,7 @@ function migrateEpisodes(){
   });
   if(migrated>0){
     save();
-    console.log("📺 Episodios inicializados:", migrated);
+    0&&console.log("📺 Episodios inicializados:", migrated);
   }
 }
 migrateEpisodes();
@@ -1952,14 +1988,14 @@ function migrateSeasons(){
   });
   if(migrated>0){
     save();
-    console.log("📺 Temporadas inicializadas:", migrated);
+    0&&console.log("📺 Temporadas inicializadas:", migrated);
   }
 }
 migrateSeasons();
 function migrateAdded(){
   let migrated=0;
   items.forEach(i=>{if(!i.a){i.a=0;migrated++}});
-  if(migrated>0){save();console.log("🕐 Fechas de añadido inicializadas:",migrated)}
+  if(migrated>0){save();0&&console.log("🕐 Fechas de añadido inicializadas:",migrated)}
 }
 migrateAdded();
 render();
